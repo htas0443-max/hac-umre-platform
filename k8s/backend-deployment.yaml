@@ -1,0 +1,133 @@
+# Backend Deployment with Auto-scaling
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hajj-backend
+  namespace: hajj-umrah
+  labels:
+    app: hajj-backend
+spec:
+  replicas: 3  # Start with 3 replicas
+  selector:
+    matchLabels:
+      app: hajj-backend
+  template:
+    metadata:
+      labels:
+        app: hajj-backend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8001"
+        prometheus.io/path: "/api/health"
+    spec:
+      containers:
+      - name: backend
+        image: hajj-umrah/backend:latest
+        ports:
+        - containerPort: 8001
+        env:
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: hajj-secrets
+              key: supabase-url
+        - name: SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: hajj-secrets
+              key: supabase-anon-key
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: hajj-secrets
+              key: supabase-service-role-key
+        - name: EMERGENT_LLM_KEY
+          valueFrom:
+            secretKeyRef:
+              name: hajj-secrets
+              key: emergent-llm-key
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: hajj-secrets
+              key: redis-url
+        - name: CORS_ORIGINS
+          value: "https://your-domain.com"
+        - name: ENVIRONMENT
+          value: "production"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 8001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 8001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+# Backend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: hajj-backend-service
+  namespace: hajj-umrah
+  labels:
+    app: hajj-backend
+spec:
+  selector:
+    app: hajj-backend
+  ports:
+  - port: 80
+    targetPort: 8001
+    protocol: TCP
+  type: ClusterIP
+---
+# Horizontal Pod Autoscaler (Auto-scaling)
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hajj-backend-hpa
+  namespace: hajj-umrah
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: hajj-backend
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Pods
+        value: 4
+        periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 25
+        periodSeconds: 60
