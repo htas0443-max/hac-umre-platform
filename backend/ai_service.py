@@ -13,7 +13,8 @@ load_dotenv()
 
 API_KEY = os.getenv("EMERGENT_LLM_KEY")
 if not API_KEY:
-    raise ValueError("EMERGENT_LLM_KEY environment variable is required")
+    print("WARNING: EMERGENT_LLM_KEY not set. AI features will be disabled.")
+    API_KEY = "demo-disabled"  # Placeholder to allow startup
 
 # ============================================
 # PROMPT INJECTION PROTECTION - ENHANCED
