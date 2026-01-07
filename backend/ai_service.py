@@ -5,7 +5,25 @@ import re
 import html
 import unicodedata
 from typing import List, Dict, Any, Optional
-from emergentintegrations.llm.chat import LlmChat, UserMessage
+
+# Try to import emergentintegrations, use mock if not available
+try:
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    LLM_AVAILABLE = True
+except ImportError:
+    print("WARNING: emergentintegrations not available. AI features will use mock responses.")
+    LLM_AVAILABLE = False
+    # Mock classes for when LLM is not available
+    class UserMessage:
+        def __init__(self, text: str):
+            self.text = text
+    class LlmChat:
+        def __init__(self, **kwargs):
+            pass
+        def with_model(self, *args):
+            return self
+        async def send_message(self, msg):
+            return "AI özelliği şu an kullanılamıyor. Lütfen daha sonra tekrar deneyin."
 
 # Load environment variables in ai_service too
 from dotenv import load_dotenv
