@@ -1,0 +1,17 @@
+# Tüm arama motorlarının siteyi indekslemesini engelle
+# Bu dosyayı sitenin tekrar arama motorlarında görünmesini istediğinizde silin veya güncelleyin
+
+User-agent: *
+Disallow: /
+
+# Googlebot'u özellikle engelle
+User-agent: Googlebot
+Disallow: /
+
+# Bingbot'u engelle
+User-agent: Bingbot
+Disallow: /
+
+# Yandex'i engelle
+User-agent: Yandex
+Disallow: /
