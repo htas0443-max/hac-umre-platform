@@ -5,7 +5,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import BottomNav from './components/BottomNav';
 import ErrorBoundary from './components/ErrorBoundary';
-import PasswordGate from './components/PasswordGate';
+// Password gate disabled - import PasswordGate from './components/PasswordGate';
 import { Toaster } from 'sonner';
 import './App.css';
 
@@ -226,13 +226,11 @@ function AppRoutes() {
 
 function App() {
   return (
-    <PasswordGate>
-      <Router>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </Router>
-    </PasswordGate>
+    <Router>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </Router>
   );
 }
 
