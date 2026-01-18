@@ -17,6 +17,8 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: [
       'hajj-travel-assist.preview.emergentagent.com',
+      'hacveumreturlari.com',
+      'www.hacveumreturlari.com',
       'localhost',
       '127.0.0.1'
     ],

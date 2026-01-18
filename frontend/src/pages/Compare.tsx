@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toursApi, aiApi } from '../api';
@@ -60,13 +60,13 @@ export default function Compare() {
   };
 
   return (
-    <motion.div 
-      className="compare-page" 
+    <motion.div
+      className="compare-page"
       data-testid="compare-page"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      <motion.div 
+      <motion.div
         style={{ marginBottom: '2rem' }}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -79,8 +79,8 @@ export default function Compare() {
 
       <AnimatePresence>
         {error && (
-          <motion.div 
-            className="alert alert-error" 
+          <motion.div
+            className="alert alert-error"
             data-testid="compare-error"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -92,19 +92,19 @@ export default function Compare() {
       </AnimatePresence>
 
       {/* AI Provider Selection */}
-      <motion.div 
-        className="card glass" 
+      <motion.div
+        className="card glass"
         style={{ marginBottom: '2rem', background: 'var(--ai-background)' }}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >
         <h3 style={{ marginBottom: '1rem' }}>🧠 AI Model Seçimi</h3>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-          <motion.label 
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '0.5rem', 
+          <motion.label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
               cursor: 'pointer',
               padding: '0.75rem 1.25rem',
               borderRadius: '12px',
@@ -127,11 +127,11 @@ export default function Compare() {
             />
             <span style={{ fontWeight: 600 }}>OpenAI GPT-5</span>
           </motion.label>
-          <motion.label 
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '0.5rem', 
+          <motion.label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
               cursor: 'pointer',
               padding: '0.75rem 1.25rem',
               borderRadius: '12px',
@@ -155,9 +155,9 @@ export default function Compare() {
             <span style={{ fontWeight: 600 }}>Claude Sonnet 4 ⚡</span>
           </motion.label>
         </div>
-        <motion.button 
-          onClick={handleCompare} 
-          className="btn btn-ai" 
+        <motion.button
+          onClick={handleCompare}
+          className="btn btn-ai"
           style={{ marginTop: '1rem', width: '100%' }}
           disabled={loading || tours.length < 2}
           data-testid="compare-btn"
@@ -169,8 +169,8 @@ export default function Compare() {
       </motion.div>
 
       {/* Tours Grid */}
-      <motion.div 
-        className="grid grid-3" 
+      <motion.div
+        className="grid grid-3"
         style={{ marginBottom: '3rem' }}
         initial="hidden"
         animate="visible"
@@ -179,9 +179,9 @@ export default function Compare() {
         }}
       >
         {tours.map((tour, idx) => (
-          <motion.div 
-            key={tour._id} 
-            className="card hover-lift" 
+          <motion.div
+            key={tour._id}
+            className="card hover-lift"
             data-testid={`compare-tour-${idx}`}
             variants={{
               hidden: { opacity: 0, scale: 0.8 },
@@ -190,12 +190,12 @@ export default function Compare() {
             whileHover={{ scale: 1.05 }}
           >
             <h3 style={{ marginBottom: '1rem' }}>{tour.title}</h3>
-            <motion.div 
-              style={{ 
-                fontSize: '1.75rem', 
-                fontWeight: 700, 
-                color: 'var(--primary-emerald)', 
-                marginBottom: '0.75rem' 
+            <motion.div
+              style={{
+                fontSize: '1.75rem',
+                fontWeight: 700,
+                color: 'var(--primary-emerald)',
+                marginBottom: '0.75rem'
               }}
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
@@ -218,9 +218,9 @@ export default function Compare() {
       {/* Comparison Results */}
       <AnimatePresence>
         {comparison && (
-          <motion.div 
-            className="card glass" 
-            style={{ background: 'var(--ai-background)' }} 
+          <motion.div
+            className="card glass"
+            style={{ background: 'var(--ai-background)' }}
             data-testid="comparison-results"
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -233,7 +233,7 @@ export default function Compare() {
             </div>
 
             {comparison.summary && (
-              <motion.div 
+              <motion.div
                 style={{ marginBottom: '2rem', padding: '1.5rem', background: 'white', borderRadius: '12px', boxShadow: 'var(--shadow-md)' }}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -247,7 +247,7 @@ export default function Compare() {
             )}
 
             {comparison.recommendations && comparison.recommendations.length > 0 && (
-              <motion.div 
+              <motion.div
                 style={{ marginBottom: '2rem' }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -258,9 +258,9 @@ export default function Compare() {
                 </h3>
                 <div className="grid grid-2" style={{ gap: '1rem' }}>
                   {comparison.recommendations.map((rec, idx) => (
-                    <motion.div 
-                      key={idx} 
-                      className="card hover-lift" 
+                    <motion.div
+                      key={idx}
+                      className="card hover-lift"
                       style={{ background: 'white' }}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -288,9 +288,9 @@ export default function Compare() {
                 </h3>
                 <div className="grid grid-3" style={{ gap: '1rem' }}>
                   {Object.entries(comparison.scores).map(([tourKey, scores], idx) => (
-                    <motion.div 
-                      key={tourKey} 
-                      className="card hover-lift" 
+                    <motion.div
+                      key={tourKey}
+                      className="card hover-lift"
                       style={{ background: 'white' }}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -301,8 +301,8 @@ export default function Compare() {
                         Tur {parseInt(tourKey.replace('tour', ''))}
                       </h4>
                       <div style={{ fontSize: '0.875rem' }}>
-                        <motion.div 
-                          style={{ 
+                        <motion.div
+                          style={{
                             marginBottom: '0.75rem',
                             padding: '0.75rem',
                             borderRadius: '8px',
@@ -334,8 +334,8 @@ export default function Compare() {
       </AnimatePresence>
 
       {tours.length < 2 && (
-        <motion.div 
-          className="card" 
+        <motion.div
+          className="card"
           style={{ textAlign: 'center', padding: '4rem 2rem' }}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}

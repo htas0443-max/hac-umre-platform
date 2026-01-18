@@ -35,6 +35,7 @@ const EmailVerification = React.lazy(() => import('./pages/EmailVerification'));
 const AdminLogin = React.lazy(() => import('./pages/AdminLogin'));
 const TermsPage = React.lazy(() => import('./pages/TermsPage'));
 const PrivacyPage = React.lazy(() => import('./pages/PrivacyPage'));
+const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 // Loading component for Suspense fallback
 const PageLoading = () => (
@@ -210,6 +211,8 @@ function AppRoutes() {
                   </AdminRoute>
                 }
               />
+              {/* 404 Catch-All Route */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </ErrorBoundary>

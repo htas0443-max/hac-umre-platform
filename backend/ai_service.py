@@ -6,6 +6,14 @@ import html
 import unicodedata
 from typing import List, Dict, Any, Optional
 
+# OpenAI client for Hugging Face Router API (Kumru 2B)
+try:
+    from openai import OpenAI
+    OPENAI_CLIENT_AVAILABLE = True
+except ImportError:
+    print("WARNING: openai package not available. Kumru 2B will be unavailable.")
+    OPENAI_CLIENT_AVAILABLE = False
+
 # Try to import emergentintegrations, use mock if not available
 try:
     from emergentintegrations.llm.chat import LlmChat, UserMessage
@@ -33,6 +41,21 @@ API_KEY = os.getenv("EMERGENT_LLM_KEY")
 if not API_KEY:
     print("WARNING: EMERGENT_LLM_KEY not set. AI features will be disabled.")
     API_KEY = "demo-disabled"  # Placeholder to allow startup
+
+# Kumru 2B Configuration (Hugging Face Router API - OpenAI compatible)
+HF_TOKEN = os.getenv("HF_TOKEN", os.getenv("HUGGINGFACE_API_KEY", os.getenv("HF_API_KEY", "")))
+KUMRU_MODEL = "vngrs-ai/Kumru-2B-Instruct"
+
+# Initialize Kumru client
+kumru_client = None
+if HF_TOKEN and OPENAI_CLIENT_AVAILABLE:
+    kumru_client = OpenAI(
+        base_url="https://router.huggingface.co/v1",
+        api_key=HF_TOKEN
+    )
+    print("INFO: Kumru 2B (Turkish LLM) enabled via Hugging Face Router API.")
+else:
+    print("WARNING: HF_TOKEN not set or openai not installed. Kumru 2B will be unavailable.")
 
 # ============================================
 # PROMPT INJECTION PROTECTION - ENHANCED
@@ -447,7 +470,8 @@ class AIService:
         self.providers = {
             "openai": "gpt-5",
             "anthropic": "claude-sonnet-4-20250514",
-            "gemini": "gemini-2.0-flash"
+            "gemini": "gemini-2.0-flash",
+            "kumru": "kumru-2b"  # Türkçe LLM - Hugging Face
         }
 
     
@@ -576,13 +600,6 @@ Lütfen şu formatta JSON çıktısı ver:
             
             model = self.providers[provider]
             
-            # SECURITY: Use hardened system prompt
-            chat = LlmChat(
-                api_key=self.api_key,
-                session_id=f"chatbot-{provider}",
-                system_message=CHAT_SYSTEM_PROMPT
-            ).with_model(provider, model)
-            
             # Context oluştur with sanitized data
             if context_tours and len(context_tours) > 0:
                 # SECURITY: Sanitize context tours
@@ -604,17 +621,51 @@ Lütfen samimi, yardımcı ve detaylı bir cevap ver."""
 
 Lütfen Hac ve Umre turları hakkında genel bilgi vererek cevapla."""
             
-            user_message = UserMessage(text=prompt)
-            response = await chat.send_message(user_message)
+            # ===== KUMRU 2B - Hugging Face Router API (OpenAI compatible) =====
+            if provider == "kumru":
+                if not kumru_client:
+                    return "Kumru AI su an kullanilamiyor (HF_TOKEN eksik). Lutfen baska bir AI model secin."
+                
+                # Kumru 2B icin system prompt
+                kumru_system = "Sen Hac ve Umre turlari konusunda uzman bir Turkce asistansin. Kullanicilara samimi ve bilgilendirici yanitlar verirsin."
+                
+                try:
+                    completion = kumru_client.chat.completions.create(
+                        model=KUMRU_MODEL,
+                        messages=[
+                            {"role": "system", "content": kumru_system},
+                            {"role": "user", "content": prompt}
+                        ],
+                        max_tokens=500,
+                        temperature=0.7
+                    )
+                    response = completion.choices[0].message.content
+                    # SECURITY: Filter AI output
+                    response = filter_ai_output(response)
+                    return response
+                except Exception as kumru_error:
+                    print(f"Kumru API error: {kumru_error}")
+                    # Fallback to openai on error
+                    return await self.chat(message, context_tours, "openai")
             
-            # SECURITY: Filter AI output
-            response = filter_ai_output(response)
-            
-            return response
+            # ===== Diger Providerlar - LlmChat =====
+            else:
+                chat = LlmChat(
+                    api_key=self.api_key,
+                    session_id=f"chatbot-{provider}",
+                    system_message=CHAT_SYSTEM_PROMPT
+                ).with_model(provider, model)
+                
+                user_message = UserMessage(text=prompt)
+                response = await chat.send_message(user_message)
+                
+                # SECURITY: Filter AI output
+                response = filter_ai_output(response)
+                
+                return response
         
         except Exception as e:
             # Hata durumunda fallback
             if provider != "openai":
                 return await self.chat(message, context_tours, "openai")
-            raise Exception(f"Chatbot hatası: {str(e)}")
-
+            raise Exception(f"Chatbot hatasi: {str(e)}")

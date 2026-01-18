@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toursApi } from '../api';
@@ -9,17 +9,35 @@ export default function ToursList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedTours, setSelectedTours] = useState<string[]>([]);
-  
+
   // Filters
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [operator, setOperator] = useState('');
+  const [currency, setCurrency] = useState('all');
   const [sortBy, setSortBy] = useState('created_at');
   const [sortOrder, setSortOrder] = useState('desc');
 
+  // Debounced filter values
+  const [debouncedMinPrice, setDebouncedMinPrice] = useState('');
+  const [debouncedMaxPrice, setDebouncedMaxPrice] = useState('');
+  const [debouncedOperator, setDebouncedOperator] = useState('');
+
+  // Debounce effect for text inputs (500ms delay)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedMinPrice(minPrice);
+      setDebouncedMaxPrice(maxPrice);
+      setDebouncedOperator(operator);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [minPrice, maxPrice, operator]);
+
+  // Load tours only when debounced values or sort options change
   useEffect(() => {
     loadTours();
-  }, [minPrice, maxPrice, operator, sortBy, sortOrder]);
+  }, [debouncedMinPrice, debouncedMaxPrice, debouncedOperator, sortBy, sortOrder]);
 
   const loadTours = async () => {
     try {
@@ -29,11 +47,21 @@ export default function ToursList() {
         sort_by: sortBy,
         sort_order: sortOrder,
       };
-      
-      if (minPrice) params.min_price = parseFloat(minPrice);
-      if (maxPrice) params.max_price = parseFloat(maxPrice);
-      if (operator) params.operator = operator;
-      
+
+      // Only add price params if they are valid numbers
+      const minPriceNum = parseFloat(debouncedMinPrice);
+      const maxPriceNum = parseFloat(debouncedMaxPrice);
+
+      if (!isNaN(minPriceNum) && minPriceNum > 0) {
+        params.min_price = minPriceNum;
+      }
+      if (!isNaN(maxPriceNum) && maxPriceNum > 0) {
+        params.max_price = maxPriceNum;
+      }
+      if (debouncedOperator.trim()) {
+        params.operator = debouncedOperator.trim();
+      }
+
       const data = await toursApi.getAll(params);
       setTours(data.tours);
       setError('');
@@ -82,14 +110,14 @@ export default function ToursList() {
   }
 
   return (
-    <motion.div 
-      className="tours-page" 
+    <motion.div
+      className="tours-page"
       data-testid="tours-page"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <motion.div 
+      <motion.div
         style={{ marginBottom: '2rem' }}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -101,8 +129,8 @@ export default function ToursList() {
       </motion.div>
 
       {error && (
-        <motion.div 
-          className="alert alert-error" 
+        <motion.div
+          className="alert alert-error"
           data-testid="tours-error"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -112,8 +140,8 @@ export default function ToursList() {
       )}
 
       {/* Filters */}
-      <motion.div 
-        className="card glass" 
+      <motion.div
+        className="card glass"
         style={{ marginBottom: '2rem' }}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -124,10 +152,16 @@ export default function ToursList() {
           <div>
             <label className="form-label">Min Fiyat</label>
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
               className="form-input"
               value={minPrice}
-              onChange={(e) => setMinPrice(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                  setMinPrice(value);
+                }
+              }}
               placeholder="örn: 10000"
               data-testid="filter-min-price"
             />
@@ -135,10 +169,16 @@ export default function ToursList() {
           <div>
             <label className="form-label">Max Fiyat</label>
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
               className="form-input"
               value={maxPrice}
-              onChange={(e) => setMaxPrice(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                  setMaxPrice(value);
+                }
+              }}
               placeholder="örn: 100000"
               data-testid="filter-max-price"
             />
@@ -148,7 +188,8 @@ export default function ToursList() {
             <select
               className="form-input"
               data-testid="filter-currency"
-              defaultValue="all"
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
             >
               <option value="all">Tümü</option>
               <option value="TRY">₺ TRY</option>
@@ -198,8 +239,8 @@ export default function ToursList() {
       {/* Compare Button */}
       <AnimatePresence>
         {selectedTours.length >= 2 && (
-          <motion.div 
-            className="alert alert-info" 
+          <motion.div
+            className="alert alert-info"
             style={{ marginBottom: '2rem' }}
             initial={{ opacity: 0, y: -20, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
@@ -207,8 +248,8 @@ export default function ToursList() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
               <span style={{ fontWeight: 600 }}>✨ {selectedTours.length} tur seçildi</span>
-              <Link 
-                to={`/compare?tours=${selectedTours.join(',')}`} 
+              <Link
+                to={`/compare?tours=${selectedTours.join(',')}`}
                 className="btn btn-ai btn-small"
                 data-testid="go-to-compare-btn"
               >
@@ -220,7 +261,7 @@ export default function ToursList() {
       </AnimatePresence>
 
       {/* Tours Grid */}
-      <motion.div 
+      <motion.div
         className="grid grid-2"
         variants={{
           visible: { transition: { staggerChildren: 0.05 } }
@@ -228,9 +269,9 @@ export default function ToursList() {
       >
         <AnimatePresence mode="popLayout">
           {tours.map((tour, index) => (
-            <motion.div 
-              key={tour._id} 
-              className="card hover-lift" 
+            <motion.div
+              key={tour._id}
+              className="card hover-lift"
               data-testid={`tour-card-${tour._id}`}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -257,11 +298,11 @@ export default function ToursList() {
               </div>
 
               <div style={{ marginBottom: '1rem' }}>
-                <motion.div 
-                  style={{ 
-                    fontSize: '2rem', 
-                    fontWeight: 700, 
-                    color: 'var(--primary-emerald)', 
+                <motion.div
+                  style={{
+                    fontSize: '2rem',
+                    fontWeight: 700,
+                    color: 'var(--primary-emerald)',
                     marginBottom: '0.75rem'
                   }}
                   initial={{ scale: 0.8 }}
@@ -294,9 +335,9 @@ export default function ToursList() {
                 <strong style={{ fontSize: '0.875rem', marginBottom: '0.5rem', display: 'block' }}>📦 Hizmetler:</strong>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   {tour.services.slice(0, 3).map((service, idx) => (
-                    <motion.span 
-                      key={idx} 
-                      className="badge badge-primary" 
+                    <motion.span
+                      key={idx}
+                      className="badge badge-primary"
                       style={{ fontSize: '0.75rem' }}
                       whileHover={{ scale: 1.1 }}
                     >
@@ -309,22 +350,34 @@ export default function ToursList() {
                 </div>
               </div>
 
-              <Link 
-                to={`/tours/${tour._id}`} 
-                className="btn btn-outline" 
-                style={{ width: '100%' }}
-                data-testid={`tour-detail-btn-${tour._id}`}
-              >
-                📋 Detayları Gör
-              </Link>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <Link
+                  to={`/tours/${tour._id}`}
+                  className="btn btn-outline"
+                  style={{ flex: 1 }}
+                  data-testid={`tour-detail-btn-${tour._id}`}
+                >
+                  📋 İncele
+                </Link>
+                <a
+                  href={`https://wa.me/905551234567?text=Merhaba, ${encodeURIComponent(tour.title)} hakkında bilgi almak istiyorum.`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-reservation"
+                  style={{ flex: 1 }}
+                  data-testid={`tour-whatsapp-btn-${tour._id}`}
+                >
+                  💬 Rezerve Et
+                </a>
+              </div>
             </motion.div>
           ))}
         </AnimatePresence>
       </motion.div>
 
       {tours.length === 0 && !loading && (
-        <motion.div 
-          className="card" 
+        <motion.div
+          className="card"
           style={{ textAlign: 'center', padding: '4rem 2rem' }}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -334,11 +387,12 @@ export default function ToursList() {
           <p style={{ color: 'var(--neutral-gray-500)', marginBottom: '1.5rem' }}>
             Lütfen filtreleri değiştirin veya daha sonra tekrar deneyin.
           </p>
-          <button 
+          <button
             onClick={() => {
               setMinPrice('');
               setMaxPrice('');
               setOperator('');
+              setCurrency('all');
             }}
             className="btn btn-primary"
           >

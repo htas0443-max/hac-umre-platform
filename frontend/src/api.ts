@@ -155,4 +155,49 @@ export const adminApi = {
   },
 };
 
+// Tickets API
+export const ticketsApi = {
+  // User: Get my tickets
+  getMyTickets: async (status?: string) => {
+    const response = await api.get('/api/tickets', { params: { status } });
+    return response.data;
+  },
+
+  // User: Create ticket
+  createTicket: async (ticket: { category: string; subject: string; description: string }) => {
+    const response = await api.post('/api/tickets', ticket);
+    return response.data;
+  },
+
+  // Get ticket by ID
+  getById: async (id: number) => {
+    const response = await api.get(`/api/tickets/${id}`);
+    return response.data;
+  },
+
+  // Add message to ticket
+  addMessage: async (ticketId: number, message: string) => {
+    const response = await api.post(`/api/tickets/${ticketId}/messages`, { message });
+    return response.data;
+  },
+
+  // Admin: Get all tickets
+  getAllTickets: async (params?: { status?: string; category?: string; priority?: string }) => {
+    const response = await api.get('/api/admin/tickets', { params });
+    return response.data;
+  },
+
+  // Admin: Update ticket status
+  updateStatus: async (id: number, status: string) => {
+    const response = await api.put(`/api/admin/tickets/${id}/status`, { status });
+    return response.data;
+  },
+
+  // Admin: Reply to ticket
+  adminReply: async (ticketId: number, message: string) => {
+    const response = await api.post(`/api/admin/tickets/${ticketId}/reply`, { message });
+    return response.data;
+  },
+};
+
 export default api;

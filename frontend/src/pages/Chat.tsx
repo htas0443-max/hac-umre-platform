@@ -189,7 +189,7 @@ export default function Chat() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1>🤖 AI Chatbot</h1>
+        <h1>🕋 Hac Rehberi</h1>
         <p style={{ color: 'var(--neutral-gray-500)', fontSize: '1.125rem' }}>
           Hac ve Umre turları hakkında sorularınıza yanıt alın
         </p>
@@ -229,7 +229,7 @@ export default function Chat() {
         animate={{ opacity: 1, scale: 1 }}
       >
         <h3 style={{ marginBottom: '1rem' }}>🧠 AI Model Seçimi</h3>
-        <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+        <div className="chat-provider-grid" style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
           <motion.label
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.75rem 1rem', borderRadius: '12px', background: provider === 'openai' ? 'var(--primary-light)' : 'transparent', border: '2px solid', borderColor: provider === 'openai' ? 'var(--primary-emerald)' : 'var(--neutral-gray-300)', flex: 1 }}
             whileHover={{ scale: 1.02 }}
@@ -261,6 +261,22 @@ export default function Chat() {
               style={{ accentColor: 'var(--ai-primary)' }}
             />
             <span style={{ fontWeight: 600 }}>Claude Sonnet 4 ⚡ (Hızlı)</span>
+          </motion.label>
+          <motion.label
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.75rem 1rem', borderRadius: '12px', background: provider === 'kumru' ? 'linear-gradient(135deg, #dc2626 0%, #f97316 100%)' : 'transparent', border: '2px solid', borderColor: provider === 'kumru' ? '#dc2626' : 'var(--neutral-gray-300)', flex: 1, color: provider === 'kumru' ? 'white' : 'inherit' }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <input
+              type="radio"
+              name="chatProvider"
+              value="kumru"
+              checked={provider === 'kumru'}
+              onChange={(e) => setProvider(e.target.value)}
+              data-testid="chat-provider-kumru"
+              style={{ accentColor: '#dc2626' }}
+            />
+            <span style={{ fontWeight: 600 }}>🦅 Kumru 2B (Türkçe AI)</span>
           </motion.label>
         </div>
       </motion.div>
@@ -369,45 +385,44 @@ export default function Chat() {
 
       {/* Input */}
       <motion.div
-        className="card glass"
+        className="card glass chat-input-card"
         style={{ background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)' }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-          <div style={{ flex: 1 }}>
-            <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block' }}>
-              ⌨️ Mesajınız
-            </label>
-            <textarea
-              className="form-input"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Mesajınızı yazın veya 🎤 butonuna basarak konuşun..."
-              rows={3}
-              disabled={loading}
-              data-testid="chat-input"
-              style={{ resize: 'vertical' }}
-            />
-          </div>
+        {/* Textarea Section */}
+        <div className="chat-textarea-wrapper">
+          <label className="form-label" style={{ marginBottom: '0.5rem', display: 'block' }}>
+            ⌨️ Mesajınız
+          </label>
+          <textarea
+            className="form-input chat-textarea"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyPress}
+            placeholder="Mesajınızı yazın veya 🎤 butonuna basarak konuşun..."
+            rows={3}
+            disabled={loading}
+            data-testid="chat-input"
+          />
+        </div>
 
+        {/* Action Buttons Row */}
+        <div className="chat-actions-row">
           {/* Voice Control Buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div className="chat-voice-controls">
             {/* Microphone Button */}
             <motion.button
               onClick={toggleListening}
-              className={`btn ${isListening ? 'btn-danger' : 'btn-secondary'}`}
+              className={`btn chat-action-btn ${isListening ? 'btn-danger' : 'btn-secondary'}`}
               disabled={loading}
               data-testid="voice-record-btn"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               style={{
-                minWidth: '50px',
-                padding: '0.75rem',
-                background: isListening ? '#ef4444' : 'var(--neutral-gray-200)',
-                border: isListening ? '2px solid #ef4444' : '2px solid var(--neutral-gray-300)'
+                background: isListening ? '#ef4444' : 'var(--bg-tertiary)',
+                border: isListening ? '2px solid #ef4444' : '2px solid var(--border-color)'
               }}
               title={isListening ? 'Kaydı Durdur' : 'Sesli Konuş'}
             >
@@ -420,16 +435,14 @@ export default function Chat() {
                 const lastAssistant = messages.filter(m => m.role === 'assistant').pop();
                 if (lastAssistant) speakText(lastAssistant.content);
               }}
-              className={`btn ${isSpeaking ? 'btn-warning' : 'btn-secondary'}`}
+              className={`btn chat-action-btn ${isSpeaking ? 'btn-warning' : 'btn-secondary'}`}
               disabled={loading || messages.filter(m => m.role === 'assistant').length === 0}
               data-testid="voice-speak-btn"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               style={{
-                minWidth: '50px',
-                padding: '0.75rem',
-                background: isSpeaking ? '#f59e0b' : 'var(--neutral-gray-200)',
-                border: isSpeaking ? '2px solid #f59e0b' : '2px solid var(--neutral-gray-300)'
+                background: isSpeaking ? '#f59e0b' : 'var(--bg-tertiary)',
+                border: isSpeaking ? '2px solid #f59e0b' : '2px solid var(--border-color)'
               }}
               title={isSpeaking ? 'Sesi Durdur' : 'Son Yanıtı Oku'}
             >
@@ -439,15 +452,13 @@ export default function Chat() {
             {/* Voice Toggle */}
             <motion.button
               onClick={() => setVoiceEnabled(!voiceEnabled)}
-              className="btn btn-secondary"
+              className="btn chat-action-btn"
               data-testid="voice-toggle-btn"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               style={{
-                minWidth: '50px',
-                padding: '0.75rem',
-                background: voiceEnabled ? 'var(--primary-emerald)' : 'var(--neutral-gray-200)',
-                border: voiceEnabled ? '2px solid var(--primary-emerald)' : '2px solid var(--neutral-gray-300)',
+                background: voiceEnabled ? 'var(--primary-teal)' : 'var(--bg-tertiary)',
+                border: voiceEnabled ? '2px solid var(--primary-teal)' : '2px solid var(--border-color)',
                 color: voiceEnabled ? 'white' : 'inherit'
               }}
               title={voiceEnabled ? 'Otomatik Sesli Yanıt Açık' : 'Otomatik Sesli Yanıt Kapalı'}
@@ -459,14 +470,13 @@ export default function Chat() {
           {/* Send Button */}
           <motion.button
             onClick={handleSend}
-            className="btn btn-ai"
+            className="btn btn-primary chat-send-btn"
             disabled={loading || !input.trim()}
             data-testid="chat-send-btn"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            style={{ minWidth: '120px' }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            {loading ? '🔄' : '🚀'} Gönder
+            {loading ? '🔄 Gönderiliyor...' : '🚀 Gönder'}
           </motion.button>
         </div>
       </motion.div>

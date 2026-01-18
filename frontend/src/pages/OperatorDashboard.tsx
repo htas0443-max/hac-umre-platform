@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { operatorApi } from '../api';
@@ -60,13 +60,13 @@ export default function OperatorDashboard() {
   }
 
   return (
-    <motion.div 
-      className="operator-dashboard" 
+    <motion.div
+      className="operator-dashboard"
       data-testid="operator-dashboard"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      <motion.div 
+      <motion.div
         style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -82,8 +82,8 @@ export default function OperatorDashboard() {
 
       {/* Stats Cards with Advanced Animations */}
       {stats && (
-        <motion.div 
-          className="grid grid-3" 
+        <motion.div
+          className="grid grid-3"
           style={{ marginBottom: '2rem' }}
           initial="hidden"
           animate="visible"
@@ -91,7 +91,7 @@ export default function OperatorDashboard() {
             visible: { transition: { staggerChildren: 0.1 } }
           }}
         >
-          <motion.div 
+          <motion.div
             className="card premium-card glow-hover"
             style={{ background: 'linear-gradient(135deg, #E8F5E9 0%, #A8D5BA 100%)' }}
             variants={{
@@ -101,7 +101,7 @@ export default function OperatorDashboard() {
             whileHover={{ scale: 1.05, rotateY: 5 }}
             transition={{ type: 'spring', stiffness: 300 }}
           >
-            <motion.h3 
+            <motion.h3
               style={{ color: 'var(--primary-emerald)', fontSize: '3rem', marginBottom: '0.5rem', fontWeight: 700 }}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -111,8 +111,8 @@ export default function OperatorDashboard() {
             </motion.h3>
             <p style={{ color: 'var(--neutral-gray-700)', fontWeight: 600 }}>📊 Toplam Tur</p>
           </motion.div>
-          
-          <motion.div 
+
+          <motion.div
             className="card premium-card pulse-ring"
             style={{ background: 'linear-gradient(135deg, #F0FDFA 0%, #02C39A 100%)' }}
             variants={{
@@ -122,7 +122,7 @@ export default function OperatorDashboard() {
             whileHover={{ scale: 1.05, rotateY: 5 }}
             transition={{ type: 'spring', stiffness: 300 }}
           >
-            <motion.h3 
+            <motion.h3
               style={{ color: 'var(--ai-primary)', fontSize: '3rem', marginBottom: '0.5rem', fontWeight: 700 }}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -132,8 +132,8 @@ export default function OperatorDashboard() {
             </motion.h3>
             <p style={{ color: 'var(--neutral-gray-700)', fontWeight: 600 }}>✅ Yayında</p>
           </motion.div>
-          
-          <motion.div 
+
+          <motion.div
             className="card premium-card heartbeat"
             style={{ background: 'linear-gradient(135deg, #E8D7A0 0%, #D4AF37 100%)' }}
             variants={{
@@ -143,7 +143,7 @@ export default function OperatorDashboard() {
             whileHover={{ scale: 1.05, rotateY: 5 }}
             transition={{ type: 'spring', stiffness: 300 }}
           >
-            <motion.h3 
+            <motion.h3
               style={{ color: 'var(--accent-gold-dark)', fontSize: '3rem', marginBottom: '0.5rem', fontWeight: 700 }}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -157,8 +157,8 @@ export default function OperatorDashboard() {
       )}
 
       {/* Filter Buttons */}
-      <motion.div 
-        className="card glass" 
+      <motion.div
+        className="card glass"
         style={{ marginBottom: '2rem' }}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -189,8 +189,8 @@ export default function OperatorDashboard() {
       {/* Tours Grid */}
       <AnimatePresence mode="popLayout">
         {tours.length === 0 ? (
-          <motion.div 
-            className="card" 
+          <motion.div
+            className="card"
             style={{ textAlign: 'center', padding: '4rem 2rem' }}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -206,7 +206,7 @@ export default function OperatorDashboard() {
             </Link>
           </motion.div>
         ) : (
-          <motion.div 
+          <motion.div
             className="grid grid-2"
             variants={{
               visible: { transition: { staggerChildren: 0.08 } }
@@ -215,15 +215,15 @@ export default function OperatorDashboard() {
             animate="visible"
           >
             {tours.map((tour, index) => (
-              <motion.div 
-                key={tour._id} 
-                className="card tilt-hover shadow-lift" 
+              <motion.div
+                key={tour._id}
+                className="card tilt-hover shadow-lift"
                 data-testid={`tour-card-${tour._id}`}
                 variants={{
                   hidden: { opacity: 0, y: 50, rotateX: -15 },
                   visible: { opacity: 1, y: 0, rotateX: 0 }
                 }}
-                whileHover={{ 
+                whileHover={{
                   scale: 1.03,
                   rotateY: 3,
                   transition: { type: 'spring', stiffness: 300 }
@@ -241,8 +241,8 @@ export default function OperatorDashboard() {
                 </div>
 
                 {tour.status === 'rejected' && tour.rejection_reason && (
-                  <motion.div 
-                    className="alert alert-error" 
+                  <motion.div
+                    className="alert alert-error"
                     style={{ marginBottom: '1rem', fontSize: '0.875rem' }}
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
@@ -253,7 +253,7 @@ export default function OperatorDashboard() {
                 )}
 
                 <div style={{ marginBottom: '1rem' }}>
-                  <motion.div 
+                  <motion.div
                     style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--primary-emerald)', marginBottom: '0.5rem' }}
                     className="golden-shine"
                   >
@@ -272,16 +272,16 @@ export default function OperatorDashboard() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <Link 
-                    to={`/operator/edit/${tour._id}`} 
+                  <Link
+                    to={`/operator/edit/${tour._id}`}
                     className="btn btn-outline btn-small ripple-effect"
                     style={{ flex: 1 }}
                     data-testid={`edit-btn-${tour._id}`}
                   >
                     ✏️ Düzenle
                   </Link>
-                  <Link 
-                    to={`/tours/${tour._id}`} 
+                  <Link
+                    to={`/tours/${tour._id}`}
                     className="btn btn-primary btn-small"
                     style={{ flex: 1 }}
                     data-testid={`view-btn-${tour._id}`}

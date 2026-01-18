@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { operatorApi, toursApi } from '../api';
 import { useAuth } from '../AuthContext';
-import type { Tour } from '../types';
 
 export default function OperatorTourForm() {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +32,11 @@ export default function OperatorTourForm() {
     itinerary: '',
     rating: '',
     phone: '',
-    status: 'pending'
+    status: 'pending',
+    departure_location: '',
+    departure_time: '',
+    arrival_location: '',
+    detailed_description: ''
   });
 
   useEffect(() => {
@@ -61,7 +64,11 @@ export default function OperatorTourForm() {
         itinerary: tour.itinerary.join('\n'),
         rating: tour.rating?.toString() || '',
         phone: tour.phone || '',
-        status: tour.status
+        status: tour.status,
+        departure_location: tour.departure_location || '',
+        departure_time: tour.departure_time || '',
+        arrival_location: tour.arrival_location || '',
+        detailed_description: tour.detailed_description || ''
       });
     } catch (err: any) {
       setError('Tur yüklenemedi');
@@ -97,7 +104,11 @@ export default function OperatorTourForm() {
         guide: formData.guide,
         itinerary: formData.itinerary.split('\n').filter(s => s.trim()),
         source: 'operator',
-        status: 'pending'
+        status: 'pending',
+        departure_location: formData.departure_location || null,
+        departure_time: formData.departure_time || null,
+        arrival_location: formData.arrival_location || null,
+        detailed_description: formData.detailed_description || null
       };
 
       if (formData.rating) {
@@ -150,13 +161,25 @@ export default function OperatorTourForm() {
           <div className="form-group">
             <label className="form-label">Fiyat *</label>
             <input
-              type="number"
+              type="text"
+              inputMode="decimal"
+              pattern="[0-9]*\.?[0-9]*"
               className="form-input"
               value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+              onChange={(e) => {
+                // Only allow numeric input with optional decimal point
+                const value = e.target.value;
+                if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                  setFormData({ ...formData, price: value });
+                }
+              }}
+              onKeyDown={(e) => {
+                // Prevent form submission on Enter in price field
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
               required
-              min="0"
-              step="0.01"
               placeholder="15000"
               data-testid="price-input"
             />
@@ -273,6 +296,12 @@ export default function OperatorTourForm() {
               className="form-input"
               value={formData.rating}
               onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
+              onKeyDown={(e) => {
+                // Prevent form submission on Enter
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                }
+              }}
               min="0"
               max="5"
               step="0.1"
@@ -321,6 +350,80 @@ export default function OperatorTourForm() {
             rows={6}
             placeholder="Gün 1: Varış ve otel transferi\nGün 2: Umre ibadetleri\nGün 3-6: Ziyaretler ve serbest zaman\nGün 7: Dönüş"
             data-testid="itinerary-input"
+          />
+        </div>
+
+        {/* Kalkış ve Varış Bilgileri */}
+        <div style={{ marginTop: '1.5rem', padding: '1.5rem', background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', borderRadius: '12px', border: '1px solid #bae6fd' }}>
+          <h3 style={{ marginBottom: '1rem', color: 'var(--primary-teal)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>🛫</span> Kalkış ve Varış Bilgileri
+          </h3>
+          <div className="grid grid-2" style={{ gap: '1rem' }}>
+            <div className="form-group">
+              <label className="form-label">Kalkış Yeri *</label>
+              <input
+                type="text"
+                className="form-input"
+                value={formData.departure_location}
+                onChange={(e) => setFormData({ ...formData, departure_location: e.target.value })}
+                placeholder="örn: İstanbul Havalimanı (IST)"
+                data-testid="departure-location-input"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Kalkış Saati *</label>
+              <input
+                type="time"
+                className="form-input"
+                value={formData.departure_time}
+                onChange={(e) => setFormData({ ...formData, departure_time: e.target.value })}
+                placeholder="örn: 08:00"
+                data-testid="departure-time-input"
+                required
+              />
+            </div>
+            <div className="form-group" style={{ gridColumn: 'span 2' }}>
+              <label className="form-label">🛬 İniş/Varış Yeri *</label>
+              <input
+                type="text"
+                className="form-input"
+                value={formData.arrival_location}
+                onChange={(e) => setFormData({ ...formData, arrival_location: e.target.value })}
+                placeholder="örn: Mekke, Medine"
+                data-testid="arrival-location-input"
+                required
+              />
+              <p style={{ fontSize: '0.75rem', color: 'var(--neutral-gray-500)', marginTop: '0.25rem' }}>
+                Turun varış noktası/noktalarını belirtin
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Detaylı Açıklama */}
+        <div className="form-group" style={{ marginTop: '1.5rem' }}>
+          <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>📝</span> Detaylı Açıklama *
+          </label>
+          <p style={{ fontSize: '0.875rem', color: 'var(--neutral-gray-500)', marginBottom: '0.5rem' }}>
+            Turun içeriği, gezilecek yerler, önemli bilgiler ve aktiviteler hakkında detaylı bilgi yazın.
+          </p>
+          <textarea
+            className="form-input"
+            value={formData.detailed_description}
+            onChange={(e) => setFormData({ ...formData, detailed_description: e.target.value })}
+            rows={8}
+            placeholder="Turunuz hakkında detaylı bilgi yazın...
+
+• Gezilecek yerler (Kabe, Mescid-i Nebevi, Hira Mağarası vb.)
+• Dahil olan aktiviteler
+• Otel ve konaklama detayları
+• Yemek hizmetleri
+• Önemli notlar ve gereksinimler"
+            data-testid="detailed-description-input"
+            style={{ lineHeight: '1.6' }}
+            required
           />
         </div>
 

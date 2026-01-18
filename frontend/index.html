@@ -4,13 +4,18 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <link rel="apple-touch-icon" href="/vite.svg" />
+  <link rel="manifest" href="/manifest.json" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#00674F" />
+  <meta name="theme-color" content="#0D9488" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <!-- Arama Motorlarından Gizle - Kaldırmak için bu satırları silin -->
   <meta name="robots" content="noindex, nofollow" />
   <meta name="googlebot" content="noindex, nofollow" />
-  <meta name="description" content="Hac ve Umre turlarını AI ile karşılaştırın" />
-  <title>TEST123 - Hac &amp; Umre Platformu</title>
+  <meta name="description"
+    content="Hac ve Umre turlarını AI ile karşılaştırın. Yapay zeka desteği ile en uygun turu bulun." />
+  <title>Hac & Umre Platformu</title>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -73,20 +78,50 @@
       margin-bottom: 1.5rem;
     }
 
+    .gate-input-wrapper {
+      position: relative;
+      width: 100%;
+      margin-bottom: 1rem;
+    }
+
     .gate-input {
       width: 100%;
-      padding: 0.875rem 1rem;
+      padding: 0.875rem 2.5rem 0.875rem 1rem;
       border-radius: 0.5rem;
       border: 1px solid rgba(255, 255, 255, 0.2);
       background: rgba(255, 255, 255, 0.1);
       color: #fff;
       font-size: 1rem;
-      margin-bottom: 1rem;
       box-sizing: border-box;
     }
 
     .gate-input::placeholder {
       color: rgba(255, 255, 255, 0.5);
+    }
+
+    .toggle-password-btn {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.6);
+      transition: color 0.2s ease;
+    }
+
+    .toggle-password-btn:hover {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .toggle-password-btn svg {
+      width: 20px;
+      height: 20px;
     }
 
     .gate-button {
@@ -124,7 +159,24 @@
       <h1 class="gate-title">Hac & Umre Platformu</h1>
       <p class="gate-subtitle">Bu site şu anda özel erişime açıktır</p>
       <form id="gate-form">
-        <input type="password" id="gate-password" class="gate-input" placeholder="Erişim şifresi" autofocus />
+        <div class="gate-input-wrapper">
+          <input type="password" id="gate-password" class="gate-input" placeholder="Erişim şifresi" autofocus />
+          <button type="button" id="toggle-password" class="toggle-password-btn" aria-label="Şifreyi göster">
+            <!-- Eye icon (şifre gizli) -->
+            <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <!-- Eye-off icon (şifre görünür) -->
+            <svg id="eye-off-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor" style="display: none;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+            </svg>
+          </button>
+        </div>
         <p id="gate-error" class="gate-error">Yanlış şifre. Lütfen tekrar deneyin.</p>
         <button type="submit" class="gate-button">Giriş Yap</button>
       </form>
@@ -144,11 +196,29 @@
       var form = document.getElementById('gate-form');
       var input = document.getElementById('gate-password');
       var error = document.getElementById('gate-error');
+      var toggleBtn = document.getElementById('toggle-password');
+      var eyeIcon = document.getElementById('eye-icon');
+      var eyeOffIcon = document.getElementById('eye-off-icon');
 
       // Check if already authenticated
       if (sessionStorage.getItem(STORAGE_KEY) === 'true') {
         gate.classList.add('hidden');
       }
+
+      // Toggle password visibility
+      toggleBtn.addEventListener('click', function () {
+        if (input.type === 'password') {
+          input.type = 'text';
+          eyeIcon.style.display = 'none';
+          eyeOffIcon.style.display = 'block';
+          toggleBtn.setAttribute('aria-label', 'Şifreyi gizle');
+        } else {
+          input.type = 'password';
+          eyeIcon.style.display = 'block';
+          eyeOffIcon.style.display = 'none';
+          toggleBtn.setAttribute('aria-label', 'Şifreyi göster');
+        }
+      });
 
       form.addEventListener('submit', function (e) {
         e.preventDefault();

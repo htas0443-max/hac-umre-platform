@@ -1,8 +1,11 @@
 // Type definitions
 
+// Role-Based Access Control (RBAC) Types
+export type UserRole = 'super_admin' | 'admin' | 'support' | 'operator' | 'user';
+
 export interface User {
   email: string;
-  role: string;
+  role: UserRole;
   company_name?: string;
   created_at?: string;
 }
@@ -29,6 +32,11 @@ export interface Tour {
   created_by?: string;
   created_at?: string;
   rejection_reason?: string;
+  // Kalkış bilgileri
+  departure_location?: string;  // Kalkış yeri
+  departure_time?: string;      // Kalkış saati
+  arrival_location?: string;    // İniş/varış yeri (örn: Mekke, Medine)
+  detailed_description?: string; // Detaylı açıklama (gezilecek yerler, aktiviteler vb.)
 }
 
 export interface ComparisonResult {
@@ -78,3 +86,39 @@ export interface AuthContextType {
   updatePassword: (newPassword: string) => Promise<void>;
   loading: boolean;
 }
+
+// Support Ticket Types
+export interface Ticket {
+  id: number;
+  user_id: string;
+  category: string;
+  subject: string;
+  description: string;
+  status: 'open' | 'pending' | 'resolved';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  assigned_to?: string;
+  created_at: string;
+  updated_at: string;
+  user_email?: string;
+  messages?: TicketMessage[];
+}
+
+export interface TicketMessage {
+  id: number;
+  ticket_id: number;
+  sender_id: string;
+  message: string;
+  is_admin: boolean;
+  created_at: string;
+  sender_email?: string;
+}
+
+export interface TicketAttachment {
+  id: number;
+  ticket_id: number;
+  file_url: string;
+  file_name: string;
+  file_size?: number;
+  created_at: string;
+}
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { toursApi } from '../api';
 import { useAuth } from '../AuthContext';
@@ -113,6 +113,67 @@ export default function TourDetail() {
           </div>
         </div>
 
+        {/* Kalkış ve Varış Bilgileri */}
+        {(tour.departure_location || tour.departure_time || tour.arrival_location) && (
+          <div style={{
+            marginBottom: '2rem',
+            padding: '1.5rem',
+            background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+            borderRadius: '12px',
+            border: '1px solid #bae6fd'
+          }}>
+            <h3 style={{ marginBottom: '1rem', color: 'var(--primary-teal)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>🛫</span> Kalkış ve Varış Bilgileri
+            </h3>
+            <div className="grid grid-2" style={{ gap: '1rem' }}>
+              {tour.departure_location && (
+                <div>
+                  <p style={{ marginBottom: '0.5rem', fontWeight: 600, color: 'var(--neutral-gray-600)' }}>
+                    📍 Kalkış Yeri
+                  </p>
+                  <p style={{ fontSize: '1.1rem', color: 'var(--neutral-gray-800)' }}>{tour.departure_location}</p>
+                </div>
+              )}
+              {tour.departure_time && (
+                <div>
+                  <p style={{ marginBottom: '0.5rem', fontWeight: 600, color: 'var(--neutral-gray-600)' }}>
+                    🕐 Kalkış Saati
+                  </p>
+                  <p style={{ fontSize: '1.1rem', color: 'var(--neutral-gray-800)' }}>{tour.departure_time}</p>
+                </div>
+              )}
+              {tour.arrival_location && (
+                <div style={{ gridColumn: tour.departure_location && tour.departure_time ? 'span 2' : 'auto' }}>
+                  <p style={{ marginBottom: '0.5rem', fontWeight: 600, color: 'var(--neutral-gray-600)' }}>
+                    🛬 İniş/Varış Yeri
+                  </p>
+                  <p style={{ fontSize: '1.1rem', color: 'var(--neutral-gray-800)' }}>{tour.arrival_location}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Detaylı Açıklama */}
+        {tour.detailed_description && (
+          <div style={{ marginBottom: '2rem' }}>
+            <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>📋</span> Detaylı Açıklama
+            </h3>
+            <div style={{
+              background: 'linear-gradient(135deg, #fefce8 0%, #fef9c3 100%)',
+              padding: '1.5rem',
+              borderRadius: '12px',
+              border: '1px solid #fde047',
+              lineHeight: '1.8'
+            }}>
+              <p style={{ whiteSpace: 'pre-wrap', color: 'var(--neutral-gray-700)' }}>
+                {tour.detailed_description}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div style={{ marginBottom: '2rem' }}>
           <h3 style={{ marginBottom: '1rem' }}>Hizmetler</h3>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -137,20 +198,51 @@ export default function TourDetail() {
           </div>
         )}
 
+        {/* Reservation CTAs */}
+        <div style={{
+          background: 'linear-gradient(180deg, #f0fdf4 0%, #dcfce7 100%)',
+          padding: '1.5rem',
+          borderRadius: '12px',
+          marginBottom: '1.5rem',
+          border: '1px solid #86efac'
+        }}>
+          <h3 style={{ marginBottom: '1rem', color: 'var(--primary-teal)' }}>📞 Hemen Rezervasyon Yap</h3>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <a
+              href={`https://wa.me/905551234567?text=Merhaba, ${encodeURIComponent(tour.title)} hakkında bilgi almak istiyorum.`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-reservation"
+              data-testid="whatsapp-btn"
+              style={{ flex: 1, minWidth: '200px' }}
+            >
+              💬 WhatsApp ile Rezervasyon
+            </a>
+            <a
+              href="tel:+905551234567"
+              className="btn btn-call"
+              data-testid="call-btn"
+              style={{ flex: 1, minWidth: '200px' }}
+            >
+              📱 Hemen Ara
+            </a>
+          </div>
+        </div>
+
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-          <Link 
-            to={`/compare?tours=${tour._id}`} 
+          <Link
+            to={`/compare?tours=${tour._id}`}
             className="btn btn-ai"
             data-testid="compare-from-detail-btn"
           >
-            Bu Turu Karşılaştır
+            🔄 Bu Turu Karşılaştır
           </Link>
-          <Link 
-            to={`/chat?tour=${tour._id}`} 
-            className="btn btn-primary"
+          <Link
+            to={`/chat?tour=${tour._id}`}
+            className="btn btn-outline"
             data-testid="chat-from-detail-btn"
           >
-            AI ile Soru Sor
+            🤖 AI ile Soru Sor
           </Link>
         </div>
       </div>

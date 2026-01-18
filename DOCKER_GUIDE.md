@@ -19,8 +19,11 @@ docker-compose up -d
 # Backend health check
 curl http://localhost:8001/api/health
 
-# Frontend
+# Frontend (development)
 open http://localhost:3000
+
+# Frontend (production)
+# open https://hacveumreturlari.com
 ```
 
 ---
@@ -72,11 +75,16 @@ docker-compose logs frontend
 
 ---
 
-### Port Yapılandırması
+### Port Yapılandırması (Development)
 
 - **Frontend:** http://localhost:3000
 - **Backend API:** http://localhost:8001
 - **API Docs:** http://localhost:8001/docs (disabled in production)
+
+### Production URLs
+
+- **Frontend:** https://hacveumreturlari.com
+- **Backend API:** https://api.hacveumreturlari.com
 
 ---
 
@@ -84,7 +92,8 @@ docker-compose logs frontend
 
 **1. Environment Variables Güncelle:**
 ```env
-VITE_BACKEND_URL=https://your-domain.com
+VITE_BACKEND_URL=https://api.hacveumreturlari.com
+CORS_ORIGINS=https://hacveumreturlari.com,https://www.hacveumreturlari.com
 ```
 
 **2. Build Production:**
