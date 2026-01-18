@@ -20,16 +20,6 @@ export function useFavorites() {
         }
     }, []);
 
-    // localStorage'a kaydet
-    const saveFavorites = useCallback((newFavorites: string[]) => {
-        try {
-            localStorage.setItem(FAVORITES_KEY, JSON.stringify(newFavorites));
-            setFavorites(newFavorites);
-        } catch (error) {
-            console.error('Favoriler kaydedilemedi:', error);
-        }
-    }, []);
-
     // Favori ekle
     const addFavorite = useCallback((tourId: string) => {
         setFavorites(prev => {
