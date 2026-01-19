@@ -13,7 +13,7 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
       - key: CORS_ORIGINS
-        value: https://www.hacveumreturlari.com,https://hacveumreturlari.com,https://hac-umre-platform.pages.dev
+        value: https://www.hacveumreturlari.com,https://hacveumreturlari.com,https://www.hacveumreturlari.net,https://hacveumreturlari.net,https://hac-umre-platform.pages.dev
       - key: ENVIRONMENT
         value: production
       - key: PYTHON_VERSION
