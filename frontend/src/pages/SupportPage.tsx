@@ -15,6 +15,13 @@ const CATEGORIES = [
 ];
 
 const FAQ = [
+    // Güven ve Doğrulama
+    { q: 'Firmalar gerçekten kontrol ediliyor mu?', a: 'Evet. Her firma, ilan yayınlamadan önce ekibimiz tarafından belge kontrolünden geçirilir. Sadece uygun bulunan firmalar platforma kabul edilir.' },
+    { q: 'Her başvuran firma ilan verebilir mi?', a: 'Hayır. Belgelerini eksiksiz ve doğru şekilde yükleyen firmalar değerlendirilir. Uygun bulunmayanlar reddedilir.' },
+    { q: 'Belgeleri neden kullanıcılar göremiyor?', a: 'Belge detayları hassas bilgilerdir. Bunları herkese açık tutmak, sahteciliği kolaylaştırabilir. Bu nedenle kontroller arka planda yapılır ve sadece sonuç paylaşılır.' },
+    { q: 'Sahte veya sorunlu bir ilan olursa ne yapılıyor?', a: 'Şüpheli ilanlar incelemeye alınır. Sorun tespit edilirse ilan kaldırılır ve firma askıya alınabilir. Kullanıcılar dilerlerse bize ulaşarak bildirimde bulunabilir.' },
+    { q: 'Platform ücretsizse bu kontroller neden yapılıyor?', a: 'Amacımız güvenilir bir ortam sunmak. Kullanıcıların tur ararken karşılaştıkları firmalara güven duyması bizim için önemli. Bu nedenle belge kontrolü temel bir adım olarak uygulanıyor.' },
+    // Genel Sorular
     { q: 'Rezervasyonumu nasıl iptal ederim?', a: 'Rezervasyon iptali için operatör ile iletişime geçin veya destek talebi oluşturun. İptal koşulları tur sözleşmesinde belirtilmiştir.' },
     { q: 'Ödeme yöntemleri nelerdir?', a: 'Kredi kartı, havale/EFT ve kapıda ödeme seçenekleri mevcuttur. Taksit seçenekleri için bankanızla iletişime geçin.' },
     { q: 'Vize işlemleri için ne gerekli?', a: 'Pasaport (min 6 ay geçerli), biyometrik fotoğraf ve başvuru formu gereklidir. Detaylar tur bilgisinde yer alır.' },
