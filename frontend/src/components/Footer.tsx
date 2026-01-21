@@ -71,7 +71,8 @@ const Footer = memo(function Footer() {
           {/* Trust Badges */}
           <div>
             <h3 style={{ fontSize: '1rem', marginBottom: '1rem', opacity: 0.9, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Shield size={16} /> Güven & Şeffaflık</h3>
-            <div style={{ fontSize: '0.875rem', lineHeight: 2 }}>
+            {/* Desktop: Show all items */}
+            <div className="footer-trust-details" style={{ fontSize: '0.875rem', lineHeight: 2 }}>
               <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <CheckCircle size={16} color="var(--accent-gold)" /> Doğrulanmış tur şirketleri
               </p>
@@ -82,6 +83,15 @@ const Footer = memo(function Footer() {
                 <HeadphonesIcon size={16} /> Destek ekibimiz yanınızda
               </p>
             </div>
+            {/* Mobile: Show only link */}
+            <Link to="/trust-faq" className="footer-trust-link" style={{
+              color: 'rgba(255,255,255,0.9)',
+              fontSize: '0.875rem',
+              textDecoration: 'none',
+              display: 'none'
+            }}>
+              Güven ve Doğrulama hakkında →
+            </Link>
           </div>
         </div>
 

@@ -2351,3 +2351,45 @@ a:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+/* ========================================
+   MOBILE FOOTER TRUST SIMPLIFICATION
+======================================== */
+
+/* Mobile: Hide trust details, show link */
+@media (max-width: 768px) {
+  .footer-trust-details {
+    display: none !important;
+  }
+
+  .footer-trust-link {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  /* Simplify trust strip on mobile */
+  .trust-strip {
+    flex-direction: column;
+    gap: 0.5rem !important;
+  }
+
+  .trust-item {
+    font-size: 0.85rem !important;
+  }
+
+  .trust-item-text {
+    font-size: 0.8rem !important;
+  }
+}
+
+/* Desktop: Show details, hide link */
+@media (min-width: 769px) {
+  .footer-trust-details {
+    display: block;
+  }
+
+  .footer-trust-link {
+    display: none !important;
+  }
+}
