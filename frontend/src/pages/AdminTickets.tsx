@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Ticket, Inbox } from 'lucide-react';
 import { ticketsApi } from '../api';
-import type { Ticket } from '../types';
+import type { Ticket as TicketType } from '../types';
 import StatusBadge from '../components/StatusBadge';
 import Breadcrumb from '../components/Breadcrumb';
 
@@ -30,7 +31,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 export default function AdminTickets() {
-    const [tickets, setTickets] = useState<Ticket[]>([]);
+    const [tickets, setTickets] = useState<TicketType[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [activeTab, setActiveTab] = useState('');
@@ -49,9 +50,9 @@ export default function AdminTickets() {
             setTickets(ticketsList);
 
             // Calculate stats
-            const open = ticketsList.filter((t: Ticket) => t.status === 'open').length;
-            const pending = ticketsList.filter((t: Ticket) => t.status === 'pending').length;
-            const resolved = ticketsList.filter((t: Ticket) => t.status === 'resolved').length;
+            const open = ticketsList.filter((t: TicketType) => t.status === 'open').length;
+            const pending = ticketsList.filter((t: TicketType) => t.status === 'pending').length;
+            const resolved = ticketsList.filter((t: TicketType) => t.status === 'resolved').length;
             setStats({ open, pending, resolved, total: ticketsList.length });
         } catch (err: any) {
             setError('Talepler yüklenemedi');
@@ -84,7 +85,7 @@ export default function AdminTickets() {
         return (
             <div style={{ margin: '2rem auto', maxWidth: '1200px' }}>
                 <Breadcrumb />
-                <h1 style={{ marginBottom: '2rem' }}>🎫 Destek Talepleri</h1>
+                <h1 style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Ticket size={24} color="var(--primary-teal)" /> Destek Talepleri</h1>
                 <div className="grid grid-4" style={{ marginBottom: '2rem' }}>
                     {[1, 2, 3, 4].map((i) => (
                         <div key={i} className="card skeleton-card" style={{
@@ -107,7 +108,7 @@ export default function AdminTickets() {
         >
             <Breadcrumb />
 
-            <h1 style={{ marginBottom: '1.5rem' }}>🎫 Destek Talepleri</h1>
+            <h1 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Ticket size={24} color="var(--primary-teal)" /> Destek Talepleri</h1>
 
             {/* Stats Cards */}
             <div className="grid grid-4" style={{ marginBottom: '2rem' }}>
@@ -136,7 +137,7 @@ export default function AdminTickets() {
                     <input
                         type="text"
                         className="form-input"
-                        placeholder="🔍 Ticket no veya konu ara..."
+                        placeholder="Ticket no veya konu ara..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         style={{ margin: 0 }}
@@ -162,7 +163,7 @@ export default function AdminTickets() {
             {/* Tickets Table */}
             {filteredTickets.length === 0 ? (
                 <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
+                    <div style={{ marginBottom: '1rem' }}><Inbox size={48} color="var(--text-muted)" /></div>
                     <p>Talep bulunamadı.</p>
                 </div>
             ) : (

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { CheckCircle, Mail, AlertTriangle, Clock, Lock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import OTPInput from '../components/OTPInput';
 
@@ -156,7 +157,7 @@ export default function EmailVerification() {
                 animate={{ opacity: 1, scale: 1 }}
             >
                 <div className="card" style={{ textAlign: 'center', padding: '3rem' }}>
-                    <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
+                    <div style={{ marginBottom: '1rem' }}><CheckCircle size={64} color="#10B981" /></div>
                     <h2 style={{ marginBottom: '1rem', color: 'var(--primary-teal)' }}>
                         E-posta Doğrulandı!
                     </h2>
@@ -185,7 +186,7 @@ export default function EmailVerification() {
                 transition={{ delay: 0.2, type: 'spring' }}
             >
                 <div className="card-header" style={{ textAlign: 'center' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📧</div>
+                    <div style={{ marginBottom: '1rem' }}><Mail size={48} color="var(--primary-teal)" /></div>
                     <h2 className="card-title" style={{ fontSize: '1.75rem' }}>
                         E-posta Doğrulama
                     </h2>
@@ -228,8 +229,8 @@ export default function EmailVerification() {
                             <strong>{formatTime(expiryTime)}</strong>
                         </>
                     ) : (
-                        <span style={{ color: 'var(--error-red, #EF4444)' }}>
-                            ⚠️ Kodun süresi doldu
+                        <span style={{ color: 'var(--error-red, #EF4444)', display: 'flex', alignItems: 'center', gap: '0.25rem', justifyContent: 'center' }}>
+                            <AlertTriangle size={16} /> Kodun süresi doldu
                         </span>
                     )}
                 </div>
@@ -244,7 +245,7 @@ export default function EmailVerification() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                 >
-                    {loading ? '⏳ Doğrulanıyor...' : '✅ Doğrula'}
+                    {loading ? <><Clock size={16} style={{ marginRight: '0.25rem' }} /> Doğrulanıyor...</> : <><CheckCircle size={16} style={{ marginRight: '0.25rem' }} /> Doğrula</>}
                 </motion.button>
 
                 {/* Divider */}
@@ -266,8 +267,8 @@ export default function EmailVerification() {
                     onClick={handleResend}
                 >
                     {resendCooldown > 0
-                        ? `📧 Yeni Kod Gönder (${resendCooldown}s)`
-                        : '📧 Yeni Kod Gönder'}
+                        ? <><Mail size={16} style={{ marginRight: '0.25rem' }} /> Yeni Kod Gönder ({resendCooldown}s)</>
+                        : <><Mail size={16} style={{ marginRight: '0.25rem' }} /> Yeni Kod Gönder</>}
                 </button>
 
                 {/* Change Email Link */}
@@ -300,7 +301,7 @@ export default function EmailVerification() {
                     fontSize: '0.8rem',
                     color: 'var(--text-secondary)'
                 }}>
-                    🔒 Güvenli doğrulama
+                    <Lock size={14} style={{ marginRight: '0.25rem' }} /> Güvenli doğrulama
                 </div>
             </motion.div>
         </motion.div>

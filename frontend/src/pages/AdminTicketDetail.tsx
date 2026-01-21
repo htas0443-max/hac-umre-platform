@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { XCircle, User, Calendar, MessageCircle, Mail, Shield, Clock, Send } from 'lucide-react';
 import { ticketsApi } from '../api';
 import type { Ticket, TicketMessage } from '../types';
 import Breadcrumb from '../components/Breadcrumb';
@@ -104,7 +105,7 @@ export default function AdminTicketDetail() {
         return (
             <div style={{ maxWidth: '900px', margin: '2rem auto', textAlign: 'center' }}>
                 <div className="card" style={{ padding: '3rem' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❌</div>
+                    <div style={{ marginBottom: '1rem' }}><XCircle size={48} color="#EF4444" /></div>
                     <p>{error || 'Talep bulunamadı'}</p>
                     <Link to="/admin/tickets" className="btn btn-primary" style={{ marginTop: '1rem' }}>
                         ← Taleplere Dön
@@ -129,9 +130,9 @@ export default function AdminTicketDetail() {
                         <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Ticket #{ticket.id}</span>
                         <h2 style={{ margin: '0.25rem 0' }}>{ticket.subject}</h2>
                         <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>
-                            {ticket.user_email && <span>👤 {ticket.user_email} • </span>}
+                            {ticket.user_email && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><User size={14} /> {ticket.user_email} • </span>}
                             {CATEGORY_LABELS[ticket.category] || ticket.category} •
-                            📅 {formatDate(ticket.created_at)}
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><Calendar size={14} /> {formatDate(ticket.created_at)}</span>
                         </div>
                     </div>
 
@@ -163,7 +164,7 @@ export default function AdminTicketDetail() {
 
             {/* Messages */}
             <div className="card" style={{ marginBottom: '1.5rem' }}>
-                <h3 style={{ marginBottom: '1rem' }}>💬 Mesajlar ({messages.length})</h3>
+                <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MessageCircle size={18} /> Mesajlar ({messages.length})</h3>
 
                 {messages.length === 0 ? (
                     <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem' }}>
@@ -185,7 +186,7 @@ export default function AdminTicketDetail() {
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
                                     <span style={{ fontWeight: 600 }}>
-                                        {msg.is_admin ? '🛡️ Destek Ekibi' : `👤 ${msg.sender_email || 'Kullanıcı'}`}
+                                        {msg.is_admin ? <><Shield size={14} style={{ marginRight: '0.25rem' }} /> Destek Ekibi</> : <><User size={14} style={{ marginRight: '0.25rem' }} /> {msg.sender_email || 'Kullanıcı'}</>}
                                     </span>
                                     <span style={{ color: 'var(--text-secondary)' }}>{formatDate(msg.created_at)}</span>
                                 </div>
@@ -198,7 +199,7 @@ export default function AdminTicketDetail() {
 
             {/* Reply Form */}
             <div className="card">
-                <h3 style={{ marginBottom: '1rem' }}>✉️ Yanıt Yaz</h3>
+                <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Mail size={18} /> Yanıt Yaz</h3>
                 <form onSubmit={handleReply}>
                     <textarea
                         className="form-input"
@@ -217,7 +218,7 @@ export default function AdminTicketDetail() {
                             className="btn btn-primary"
                             disabled={sending || !replyText.trim()}
                         >
-                            {sending ? '⏳ Gönderiliyor...' : '📤 Yanıt Gönder'}
+                            {sending ? <><Clock size={14} style={{ marginRight: '0.25rem' }} /> Gönderiliyor...</> : <><Send size={14} style={{ marginRight: '0.25rem' }} /> Yanıt Gönder</>}
                         </button>
                     </div>
                 </form>
