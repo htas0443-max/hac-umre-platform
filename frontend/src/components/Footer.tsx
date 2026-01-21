@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Phone, MessageCircle, Mail, Award, Lock, Star, PhoneCall, FileText, Shield, HelpCircle } from 'lucide-react';
+import { Phone, MessageCircle, Mail, CheckCircle, FileText, Shield, HelpCircle, HeadphonesIcon, Lock } from 'lucide-react';
 
 const Footer = memo(function Footer() {
   return (
@@ -70,16 +70,16 @@ const Footer = memo(function Footer() {
 
           {/* Trust Badges */}
           <div>
-            <h3 style={{ fontSize: '1rem', marginBottom: '1rem', opacity: 0.9, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Shield size={16} /> Güven & Güvenlik</h3>
+            <h3 style={{ fontSize: '1rem', marginBottom: '1rem', opacity: 0.9, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Shield size={16} /> Güven & Şeffaflık</h3>
             <div style={{ fontSize: '0.875rem', lineHeight: 2 }}>
               <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Award size={16} color="var(--accent-gold)" /> TÜRSAB Üyesi
+                <CheckCircle size={16} color="var(--accent-gold)" /> Doğrulanmış tur şirketleri
               </p>
               <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Star size={16} color="var(--accent-gold)" /> 1000+ Mutlu Müşteri
+                <FileText size={16} /> Belge kontrolünden geçen ilanlar
               </p>
               <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <PhoneCall size={16} /> 7/24 Destek
+                <HeadphonesIcon size={16} /> Destek ekibimiz yanınızda
               </p>
             </div>
           </div>
