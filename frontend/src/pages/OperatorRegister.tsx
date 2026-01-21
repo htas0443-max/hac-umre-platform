@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Building, Mail, Lock, AlertTriangle, RefreshCw, PartyPopper } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 
 export default function OperatorRegister() {
@@ -67,7 +68,7 @@ export default function OperatorRegister() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            🏢 Tur Şirketi Kayıt
+            <Building size={24} style={{ marginRight: '0.5rem' }} /> Tur Şirketi Kayıt
           </motion.h2>
           <p className="card-subtitle">Tur ilanlarınızı yayınlayın</p>
         </div>
@@ -81,7 +82,7 @@ export default function OperatorRegister() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
             >
-              ⚠️ {error}
+              <AlertTriangle size={16} style={{ marginRight: '0.5rem' }} /> {error}
             </motion.div>
           )}
         </AnimatePresence>
@@ -93,7 +94,7 @@ export default function OperatorRegister() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <label className="form-label" htmlFor="companyName">🏢 Şirket Adı</label>
+            <label className="form-label" htmlFor="companyName" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Building size={16} /> Şirket Adı</label>
             <input
               type="text"
               id="companyName"
@@ -112,7 +113,7 @@ export default function OperatorRegister() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <label className="form-label" htmlFor="email">📧 Email</label>
+            <label className="form-label" htmlFor="email" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Mail size={16} /> Email</label>
             <input
               type="email"
               id="email"
@@ -131,7 +132,7 @@ export default function OperatorRegister() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.6 }}
           >
-            <label className="form-label" htmlFor="password">🔒 Şifre</label>
+            <label className="form-label" htmlFor="password" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Lock size={16} /> Şifre</label>
             <input
               type="password"
               id="password"
@@ -151,7 +152,7 @@ export default function OperatorRegister() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.7 }}
           >
-            <label className="form-label" htmlFor="confirmPassword">🔒 Şifre Tekrar</label>
+            <label className="form-label" htmlFor="confirmPassword" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Lock size={16} /> Şifre Tekrar</label>
             <input
               type="password"
               id="confirmPassword"
@@ -177,7 +178,7 @@ export default function OperatorRegister() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            {loading ? '🔄 Kayıt yapılıyor...' : '🎉 Tur Şirketi Olarak Kayıt Ol'}
+            {loading ? <><RefreshCw size={16} style={{ marginRight: '0.5rem' }} /> Kayıt yapılıyor...</> : <><PartyPopper size={16} style={{ marginRight: '0.5rem' }} /> Tur Şirketi Olarak Kayıt Ol</>}
           </motion.button>
         </form>
 

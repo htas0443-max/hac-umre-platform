@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Lock, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 
 export default function ResetPassword() {
@@ -73,7 +74,7 @@ export default function ResetPassword() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.3 }}
                     >
-                        🔐 Yeni Şifre Belirle
+                        <Lock size={24} style={{ marginRight: '0.5rem' }} /> Yeni Şifre Belirle
                     </motion.h2>
                     <p className="card-subtitle">Yeni şifrenizi girin</p>
                 </div>
@@ -87,7 +88,7 @@ export default function ResetPassword() {
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
                         >
-                            ⚠️ {error}
+                            <AlertTriangle size={16} style={{ marginRight: '0.5rem' }} /> {error}
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -108,7 +109,7 @@ export default function ResetPassword() {
                                 color: 'white'
                             }}
                         >
-                            ✅ Şifreniz başarıyla güncellendi! Giriş sayfasına yönlendiriliyorsunuz...
+                            <CheckCircle size={16} style={{ marginRight: '0.5rem' }} /> Şifreniz başarıyla güncellendi! Giriş sayfasına yönlendiriliyorsunuz...
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -121,7 +122,7 @@ export default function ResetPassword() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.4 }}
                         >
-                            <label className="form-label" htmlFor="password">🔒 Yeni Şifre</label>
+                            <label className="form-label" htmlFor="password" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Lock size={16} /> Yeni Şifre</label>
                             <input
                                 type="password"
                                 id="password"
@@ -141,7 +142,7 @@ export default function ResetPassword() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.5 }}
                         >
-                            <label className="form-label" htmlFor="confirmPassword">🔒 Şifre Tekrar</label>
+                            <label className="form-label" htmlFor="confirmPassword" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Lock size={16} /> Şifre Tekrar</label>
                             <input
                                 type="password"
                                 id="confirmPassword"
@@ -167,7 +168,7 @@ export default function ResetPassword() {
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.6 }}
                         >
-                            {loading ? '🔄 Güncelleniyor...' : '✅ Şifreyi Güncelle'}
+                            {loading ? <><RefreshCw size={16} style={{ marginRight: '0.5rem' }} /> Güncelleniyor...</> : <><CheckCircle size={16} style={{ marginRight: '0.5rem' }} /> Şifreyi Güncelle</>}
                         </motion.button>
                     </form>
                 )}

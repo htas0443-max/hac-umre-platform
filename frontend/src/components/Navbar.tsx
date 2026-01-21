@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Home, Globe, RefreshCw, BookOpen, BarChart3, CheckCircle, FolderUp } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 
 export default function Navbar() {
@@ -114,20 +115,20 @@ export default function Navbar() {
             variants={menuVariants}
             transition={{ duration: 0.3 }}
           >
-            <Link to="/" className="navbar-mobile-link" onClick={closeMenu}>🏠 Ana Sayfa</Link>
-            <Link to="/tours" className="navbar-mobile-link" onClick={closeMenu}>🌍 Turlar</Link>
-            <Link to="/compare" className="navbar-mobile-link" onClick={closeMenu}>🔄 Karşılaştır</Link>
-            <Link to="/chat" className="navbar-mobile-link" onClick={closeMenu}>🕋 Hac Rehberi</Link>
+            <Link to="/" className="navbar-mobile-link" onClick={closeMenu}><Home size={18} style={{ marginRight: '0.5rem' }} /> Ana Sayfa</Link>
+            <Link to="/tours" className="navbar-mobile-link" onClick={closeMenu}><Globe size={18} style={{ marginRight: '0.5rem' }} /> Turlar</Link>
+            <Link to="/compare" className="navbar-mobile-link" onClick={closeMenu}><RefreshCw size={18} style={{ marginRight: '0.5rem' }} /> Karşılaştır</Link>
+            <Link to="/chat" className="navbar-mobile-link" onClick={closeMenu}><BookOpen size={18} style={{ marginRight: '0.5rem' }} /> Hac Rehberi</Link>
 
             {user ? (
               <>
                 {user.role === 'operator' && (
-                  <Link to="/operator/dashboard" className="navbar-mobile-link" onClick={closeMenu}>📊 Dashboard</Link>
+                  <Link to="/operator/dashboard" className="navbar-mobile-link" onClick={closeMenu}><BarChart3 size={18} style={{ marginRight: '0.5rem' }} /> Dashboard</Link>
                 )}
                 {user.role === 'admin' && (
                   <>
-                    <Link to="/admin/approval" className="navbar-mobile-link" onClick={closeMenu}>✅ Tur Onayları</Link>
-                    <Link to="/admin/import" className="navbar-mobile-link" onClick={closeMenu}>📁 CSV Import</Link>
+                    <Link to="/admin/approval" className="navbar-mobile-link" onClick={closeMenu}><CheckCircle size={18} style={{ marginRight: '0.5rem' }} /> Tur Onayları</Link>
+                    <Link to="/admin/import" className="navbar-mobile-link" onClick={closeMenu}><FolderUp size={18} style={{ marginRight: '0.5rem' }} /> CSV Import</Link>
                   </>
                 )}
                 <div className="navbar-mobile-divider" />

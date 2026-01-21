@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Phone, MessageCircle, Mail, Award, Lock, Star, PhoneCall, FileText, Shield, HelpCircle } from 'lucide-react';
 
 const Footer = memo(function Footer() {
   return (
@@ -36,14 +37,14 @@ const Footer = memo(function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h3 style={{ fontSize: '1rem', marginBottom: '1rem', opacity: 0.9 }}>📞 İletişim</h3>
+            <h3 style={{ fontSize: '1rem', marginBottom: '1rem', opacity: 0.9, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Phone size={16} /> İletişim</h3>
             <div style={{ fontSize: '0.875rem', lineHeight: 2 }}>
               <p>
                 <a
                   href="tel:+905551234567"
                   style={{ color: 'white', textDecoration: 'none' }}
                 >
-                  📱 +90 555 123 45 67
+                  <Phone size={14} style={{ marginRight: '0.25rem' }} /> +90 555 123 45 67
                 </a>
               </p>
               <p>
@@ -53,7 +54,7 @@ const Footer = memo(function Footer() {
                   rel="noopener noreferrer"
                   style={{ color: '#25D366', textDecoration: 'none', fontWeight: 500 }}
                 >
-                  💬 WhatsApp ile Ulaşın
+                  <MessageCircle size={14} style={{ marginRight: '0.25rem' }} /> WhatsApp ile Ulaşın
                 </a>
               </p>
               <p>
@@ -61,7 +62,7 @@ const Footer = memo(function Footer() {
                   href="mailto:info@hacveumreturlari.com"
                   style={{ color: 'white', textDecoration: 'none' }}
                 >
-                  ✉️ info@hacveumreturlari.com
+                  <Mail size={14} style={{ marginRight: '0.25rem' }} /> info@hacveumreturlari.com
                 </a>
               </p>
             </div>
@@ -69,19 +70,19 @@ const Footer = memo(function Footer() {
 
           {/* Trust Badges */}
           <div>
-            <h3 style={{ fontSize: '1rem', marginBottom: '1rem', opacity: 0.9 }}>✅ Güven & Güvenlik</h3>
+            <h3 style={{ fontSize: '1rem', marginBottom: '1rem', opacity: 0.9, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Shield size={16} /> Güven & Güvenlik</h3>
             <div style={{ fontSize: '0.875rem', lineHeight: 2 }}>
               <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ color: 'var(--accent-gold)' }}>🏅</span> TÜRSAB Üyesi
+                <Award size={16} color="var(--accent-gold)" /> TÜRSAB Üyesi
               </p>
               <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span>🔒</span> SSL Güvenli Bağlantı
+                <Lock size={16} /> SSL Güvenli Bağlantı
               </p>
               <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span>⭐</span> 1000+ Mutlu Müşteri
+                <Star size={16} color="var(--accent-gold)" /> 1000+ Mutlu Müşteri
               </p>
               <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span>📞</span> 7/24 Destek
+                <PhoneCall size={16} /> 7/24 Destek
               </p>
             </div>
           </div>
@@ -102,13 +103,13 @@ const Footer = memo(function Footer() {
           </p>
           <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
             <Link to="/terms" style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.8rem', textDecoration: 'none' }}>
-              📜 Kullanım Koşulları
+              <FileText size={14} style={{ marginRight: '0.25rem' }} /> Kullanım Koşulları
             </Link>
             <Link to="/privacy" style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.8rem', textDecoration: 'none' }}>
-              🔒 Gizlilik Politikası
+              <Lock size={14} style={{ marginRight: '0.25rem' }} /> Gizlilik Politikası
             </Link>
             <Link to="/support" style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.8rem', textDecoration: 'none' }}>
-              💬 Destek
+              <HelpCircle size={14} style={{ marginRight: '0.25rem' }} /> Destek
             </Link>
           </div>
         </div>

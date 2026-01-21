@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Building, Sparkles, BarChart3, CheckCircle, Clock, Inbox, XCircle, Building2, MapPin, Package, Edit, Eye, Star } from 'lucide-react';
 import { operatorApi } from '../api';
 import { useAuth } from '../AuthContext';
 import type { Tour } from '../types';
@@ -72,11 +73,11 @@ export default function OperatorDashboard() {
         animate={{ opacity: 1, y: 0 }}
       >
         <div>
-          <h1 className="slide-fade-in">🏢 {user?.company_name || 'Tur Şirketi'} Dashboard</h1>
+          <h1 className="slide-fade-in" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Building size={28} color="var(--primary-teal)" /> {user?.company_name || 'Tur Şirketi'} Dashboard</h1>
           <p style={{ color: 'var(--neutral-gray-500)', fontSize: '1.125rem' }}>Turlarınızı yönetin</p>
         </div>
         <Link to="/operator/create" className="btn btn-primary" data-testid="create-tour-btn">
-          ✨ Yeni Tur İlanı
+          <Sparkles size={18} style={{ marginRight: '0.5rem' }} /> Yeni Tur İlanı
         </Link>
       </motion.div>
 
@@ -109,7 +110,7 @@ export default function OperatorDashboard() {
             >
               {stats.total_tours}
             </motion.h3>
-            <p style={{ color: 'var(--neutral-gray-700)', fontWeight: 600 }}>📊 Toplam Tur</p>
+            <p style={{ color: 'var(--neutral-gray-700)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><BarChart3 size={18} /> Toplam Tur</p>
           </motion.div>
 
           <motion.div
@@ -130,7 +131,7 @@ export default function OperatorDashboard() {
             >
               {stats.approved_tours}
             </motion.h3>
-            <p style={{ color: 'var(--neutral-gray-700)', fontWeight: 600 }}>✅ Yayında</p>
+            <p style={{ color: 'var(--neutral-gray-700)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><CheckCircle size={18} color="#10B981" /> Yayında</p>
           </motion.div>
 
           <motion.div
@@ -151,7 +152,7 @@ export default function OperatorDashboard() {
             >
               {stats.pending_tours}
             </motion.h3>
-            <p style={{ color: 'var(--neutral-gray-700)', fontWeight: 600 }}>⏳ Onay Bekliyor</p>
+            <p style={{ color: 'var(--neutral-gray-700)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Clock size={18} color="#D97706" /> Onay Bekliyor</p>
           </motion.div>
         </motion.div>
       )}
@@ -196,13 +197,13 @@ export default function OperatorDashboard() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
           >
-            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📭</div>
+            <div style={{ marginBottom: '1rem' }}><Inbox size={64} color="var(--text-muted)" /></div>
             <h3 style={{ marginBottom: '1rem' }}>Henüz tur ilanınız yok</h3>
             <p style={{ color: 'var(--neutral-gray-500)', marginBottom: '1.5rem' }}>
               İlk turunuzu oluşturun ve platformda yayınlanmasını sağlayın.
             </p>
             <Link to="/operator/create" className="btn btn-primary">
-              ✨ İlk Turunuzu Oluşturun
+              <Sparkles size={18} style={{ marginRight: '0.5rem' }} /> İlk Turunuzu Oluşturun
             </Link>
           </motion.div>
         ) : (
@@ -248,7 +249,7 @@ export default function OperatorDashboard() {
                     animate={{ opacity: 1, height: 'auto' }}
                     transition={{ delay: 0.3 }}
                   >
-                    <strong>❌ Red Nedeni:</strong> {tour.rejection_reason}
+                    <strong style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><XCircle size={14} color="#DC2626" /> Red Nedeni:</strong> {tour.rejection_reason}
                   </motion.div>
                 )}
 
@@ -261,14 +262,14 @@ export default function OperatorDashboard() {
                   </motion.div>
                   <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                     <span className="badge badge-primary">{tour.duration}</span>
-                    {tour.rating && <span className="badge badge-gold">⭐ {tour.rating}</span>}
+                    {tour.rating && <span className="badge badge-gold" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Star size={12} /> {tour.rating}</span>}
                   </div>
                 </div>
 
                 <div style={{ marginBottom: '1rem', fontSize: '0.875rem', lineHeight: 1.7 }}>
-                  <p style={{ marginBottom: '0.25rem' }}><strong>🏨 Otel:</strong> {tour.hotel}</p>
-                  <p style={{ marginBottom: '0.25rem' }}><strong>📍 Tarih:</strong> {tour.start_date} - {tour.end_date}</p>
-                  <p><strong>📦 Hizmetler:</strong> {tour.services.length} adet</p>
+                  <p style={{ marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Building2 size={14} color="var(--primary-teal)" /> <strong>Otel:</strong> {tour.hotel}</p>
+                  <p style={{ marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MapPin size={14} color="var(--primary-teal)" /> <strong>Tarih:</strong> {tour.start_date} - {tour.end_date}</p>
+                  <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Package size={14} color="var(--primary-teal)" /> <strong>Hizmetler:</strong> {tour.services.length} adet</p>
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -278,7 +279,7 @@ export default function OperatorDashboard() {
                     style={{ flex: 1 }}
                     data-testid={`edit-btn-${tour._id}`}
                   >
-                    ✏️ Düzenle
+                    <Edit size={14} style={{ marginRight: '0.25rem' }} /> Düzenle
                   </Link>
                   <Link
                     to={`/tours/${tour._id}`}
@@ -286,7 +287,7 @@ export default function OperatorDashboard() {
                     style={{ flex: 1 }}
                     data-testid={`view-btn-${tour._id}`}
                   >
-                    👁️ Görüntüle
+                    <Eye size={14} style={{ marginRight: '0.25rem' }} /> Görüntüle
                   </Link>
                 </div>
               </motion.div>

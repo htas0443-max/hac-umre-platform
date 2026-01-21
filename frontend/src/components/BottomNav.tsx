@@ -1,17 +1,18 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Home, Globe, RefreshCw, BookOpen, type LucideIcon } from 'lucide-react';
 
 interface NavItem {
     path: string;
-    icon: string;
+    IconComponent: LucideIcon;
     label: string;
 }
 
 const navItems: NavItem[] = [
-    { path: '/', icon: '🏠', label: 'Ana Sayfa' },
-    { path: '/tours', icon: '🌍', label: 'Turlar' },
-    { path: '/compare', icon: '🔄', label: 'Karşılaştır' },
-    { path: '/chat', icon: '🕋', label: 'Rehber' },
+    { path: '/', IconComponent: Home, label: 'Ana Sayfa' },
+    { path: '/tours', IconComponent: Globe, label: 'Turlar' },
+    { path: '/compare', IconComponent: RefreshCw, label: 'Karşılaştır' },
+    { path: '/chat', IconComponent: BookOpen, label: 'Rehber' },
 ];
 
 export default function BottomNav() {
@@ -36,7 +37,7 @@ export default function BottomNav() {
                             className={`bottom-nav-item ${isActive ? 'active' : ''}`}
                             aria-current={isActive ? 'page' : undefined}
                         >
-                            <span className="bottom-nav-icon">{item.icon}</span>
+                            <span className="bottom-nav-icon"><item.IconComponent size={20} /></span>
                             <span>{item.label}</span>
                         </Link>
                     );
