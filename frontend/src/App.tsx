@@ -36,6 +36,7 @@ const AdminLogin = React.lazy(() => import('./pages/AdminLogin'));
 const TermsPage = React.lazy(() => import('./pages/TermsPage'));
 const PrivacyPage = React.lazy(() => import('./pages/PrivacyPage'));
 const VerificationPage = React.lazy(() => import('./pages/VerificationPage'));
+const TrustFaqPage = React.lazy(() => import('./pages/TrustFaqPage'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 // Loading component for Suspense fallback
@@ -106,6 +107,7 @@ function AppRoutes() {
               <Route path="/terms" element={<TermsPage />} />
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/verification" element={<VerificationPage />} />
+              <Route path="/trust-faq" element={<TrustFaqPage />} />
               <Route
                 path="/tours"
                 element={
