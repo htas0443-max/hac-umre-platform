@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Key, Mail, CheckCircle, RefreshCw, Send } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 
 export default function ForgotPassword() {
@@ -48,7 +49,7 @@ export default function ForgotPassword() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.3 }}
                     >
-                        🔑 Şifremi Unuttum
+                        <Key size={24} style={{ marginRight: '0.5rem' }} /> Şifremi Unuttum
                     </motion.h2>
                     <p className="card-subtitle">E-posta adresinize şifre sıfırlama linki gönderilecek</p>
                 </div>
@@ -83,7 +84,7 @@ export default function ForgotPassword() {
                                 color: 'white'
                             }}
                         >
-                            ✅ Şifre sıfırlama linki e-posta adresinize gönderildi. Lütfen gelen kutunuzu kontrol edin.
+                            <CheckCircle size={16} style={{ marginRight: '0.5rem' }} /> Şifre sıfırlama linki e-posta adresinize gönderildi. Lütfen gelen kutunuzu kontrol edin.
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -96,7 +97,7 @@ export default function ForgotPassword() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.4 }}
                         >
-                            <label className="form-label" htmlFor="email">📧 E-posta Adresi</label>
+                            <label className="form-label" htmlFor="email" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Mail size={16} /> E-posta Adresi</label>
                             <input
                                 type="email"
                                 id="email"
@@ -121,7 +122,7 @@ export default function ForgotPassword() {
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.5 }}
                         >
-                            {loading ? '🔄 Gönderiliyor...' : '📩 Şifre Sıfırlama Linki Gönder'}
+                            {loading ? <><RefreshCw size={16} style={{ marginRight: '0.5rem' }} /> Gönderiliyor...</> : <><Send size={16} style={{ marginRight: '0.5rem' }} /> Şifre Sıfırlama Linki Gönder</>}
                         </motion.button>
                     </form>
                 )}

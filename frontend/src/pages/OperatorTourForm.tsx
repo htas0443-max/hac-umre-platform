@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { Phone, PlaneTakeoff, PlaneLanding, FileText, Building2, FileCheck, Check } from 'lucide-react';
 import { operatorApi, toursApi } from '../api';
 import { useAuth } from '../AuthContext';
 
@@ -311,7 +312,7 @@ export default function OperatorTourForm() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">📞 Telefon Numarası *</label>
+            <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Phone size={16} color="var(--primary-teal)" /> Telefon Numarası *</label>
             <input
               type="tel"
               className="form-input"
@@ -356,7 +357,7 @@ export default function OperatorTourForm() {
         {/* Kalkış ve Varış Bilgileri */}
         <div style={{ marginTop: '1.5rem', padding: '1.5rem', background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', borderRadius: '12px', border: '1px solid #bae6fd' }}>
           <h3 style={{ marginBottom: '1rem', color: 'var(--primary-teal)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>🛫</span> Kalkış ve Varış Bilgileri
+            <PlaneTakeoff size={20} color="var(--primary-teal)" /> Kalkış ve Varış Bilgileri
           </h3>
           <div className="grid grid-2" style={{ gap: '1rem' }}>
             <div className="form-group">
@@ -384,7 +385,7 @@ export default function OperatorTourForm() {
               />
             </div>
             <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label className="form-label">🛬 İniş/Varış Yeri *</label>
+              <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><PlaneLanding size={16} color="var(--primary-teal)" /> İniş/Varış Yeri *</label>
               <input
                 type="text"
                 className="form-input"
@@ -404,7 +405,7 @@ export default function OperatorTourForm() {
         {/* Detaylı Açıklama */}
         <div className="form-group" style={{ marginTop: '1.5rem' }}>
           <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>📝</span> Detaylı Açıklama *
+            <FileText size={16} color="var(--primary-teal)" /> Detaylı Açıklama *
           </label>
           <p style={{ fontSize: '0.875rem', color: 'var(--neutral-gray-500)', marginBottom: '0.5rem' }}>
             Turun içeriği, gezilecek yerler, önemli bilgiler ve aktiviteler hakkında detaylı bilgi yazın.
@@ -430,7 +431,7 @@ export default function OperatorTourForm() {
         {/* E-Devlet Onaylı Belgeler */}
         <div className="form-group" style={{ marginTop: '1.5rem' }}>
           <label className="form-label" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '1.25rem' }}>🏛️</span>
+            <Building2 size={20} color="var(--primary-teal)" />
             E-Devlet Onaylı Belgeler *
           </label>
           <p style={{ fontSize: '0.875rem', color: 'var(--neutral-gray-500)', marginBottom: '1rem' }}>
@@ -441,8 +442,8 @@ export default function OperatorTourForm() {
             {/* Şirket Ruhsatı */}
             <div style={{ padding: '1rem', background: 'var(--neutral-gray-100)', borderRadius: '8px' }}>
               <label className="form-label" style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                📄 Şirket Ruhsatı *
-                {sirketRuhsati && <span style={{ color: 'var(--success-green)', fontSize: '1rem' }}>✓</span>}
+                <FileCheck size={16} /> Şirket Ruhsatı *
+                {sirketRuhsati && <Check size={14} color="var(--success-green)" />}
               </label>
               <input
                 type="file"
@@ -462,8 +463,8 @@ export default function OperatorTourForm() {
             {/* Vergi Levhası */}
             <div style={{ padding: '1rem', background: 'var(--neutral-gray-100)', borderRadius: '8px' }}>
               <label className="form-label" style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                📄 Vergi Levhası *
-                {vergiLevhasi && <span style={{ color: 'var(--success-green)', fontSize: '1rem' }}>✓</span>}
+                <FileCheck size={16} /> Vergi Levhası *
+                {vergiLevhasi && <Check size={14} color="var(--success-green)" />}
               </label>
               <input
                 type="file"
@@ -483,8 +484,8 @@ export default function OperatorTourForm() {
             {/* TÜRSAB Belgesi */}
             <div style={{ padding: '1rem', background: 'var(--neutral-gray-100)', borderRadius: '8px' }}>
               <label className="form-label" style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                📄 TÜRSAB Belgesi *
-                {tursabBelgesi && <span style={{ color: 'var(--success-green)', fontSize: '1rem' }}>✓</span>}
+                <FileCheck size={16} /> TÜRSAB Belgesi *
+                {tursabBelgesi && <Check size={14} color="var(--success-green)" />}
               </label>
               <input
                 type="file"

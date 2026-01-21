@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { RefreshCw, Brain, Zap, Bot, Building2, Building, Package, Sparkles, BarChart3, Target, Trophy, Search, Globe } from 'lucide-react';
 import { toursApi, aiApi } from '../api';
 import type { Tour, ComparisonResult } from '../types';
 
@@ -71,7 +72,7 @@ export default function Compare() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1>🔄 AI Karşılaştırma</h1>
+        <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><RefreshCw size={28} color="var(--primary-teal)" /> AI Karşılaştırma</h1>
         <p style={{ color: 'var(--neutral-gray-500)', fontSize: '1.125rem' }}>
           {tours.length} tur seçildi - Yapay zeka ile detaylı karşılaştırma
         </p>
@@ -98,7 +99,7 @@ export default function Compare() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >
-        <h3 style={{ marginBottom: '1rem' }}>🧠 AI Model Seçimi</h3>
+        <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Brain size={20} color="var(--ai-primary)" /> AI Model Seçimi</h3>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <motion.label
             style={{
@@ -152,7 +153,7 @@ export default function Compare() {
               data-testid="provider-anthropic"
               style={{ accentColor: 'var(--ai-primary)' }}
             />
-            <span style={{ fontWeight: 600 }}>Claude Sonnet 4 ⚡</span>
+            <span style={{ fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>Claude Sonnet 4 <Zap size={14} color="var(--ai-primary)" /></span>
           </motion.label>
         </div>
         <motion.button
@@ -164,7 +165,7 @@ export default function Compare() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          {loading ? '🔄 Karşılaştırılıyor...' : '🤖 AI ile Karşılaştır'}
+          {loading ? <><RefreshCw size={16} style={{ marginRight: '0.5rem' }} /> Karşılaştırılıyor...</> : <><Bot size={16} style={{ marginRight: '0.5rem' }} /> AI ile Karşılaştır</>}
         </motion.button>
       </motion.div>
 
@@ -207,9 +208,9 @@ export default function Compare() {
               <span className="badge badge-primary">{tour.duration}</span>
             </div>
             <div style={{ fontSize: '0.875rem', color: 'var(--neutral-gray-700)', lineHeight: 1.7 }}>
-              <p style={{ marginBottom: '0.5rem' }}><strong>🏨 Otel:</strong> {tour.hotel}</p>
-              <p style={{ marginBottom: '0.5rem' }}><strong>🏬 Operatör:</strong> {tour.operator}</p>
-              <p><strong>📦 Hizmetler:</strong> {tour.services.length} adet</p>
+              <p style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Building2 size={14} color="var(--primary-teal)" /> <strong>Otel:</strong> {tour.hotel}</p>
+              <p style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Building size={14} color="var(--primary-teal)" /> <strong>Operatör:</strong> {tour.operator}</p>
+              <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Package size={14} color="var(--primary-teal)" /> <strong>Hizmetler:</strong> {tour.services.length} adet</p>
             </div>
           </motion.div>
         ))}
@@ -228,8 +229,8 @@ export default function Compare() {
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
           >
             <div className="card-header">
-              <h2 className="card-title">✨ AI Karşılaştırma Sonucu</h2>
-              <span className="badge badge-ai">🤖 {comparison.provider}</span>
+              <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Sparkles size={24} color="var(--accent-gold)" /> AI Karşılaştırma Sonucu</h2>
+              <span className="badge badge-ai" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Bot size={14} /> {comparison.provider}</span>
             </div>
 
             {comparison.summary && (
@@ -240,7 +241,7 @@ export default function Compare() {
                 transition={{ delay: 0.2 }}
               >
                 <h3 style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>📊</span> Özet
+                  <BarChart3 size={18} color="var(--primary-teal)" /> Özet
                 </h3>
                 <p style={{ lineHeight: 1.8, fontSize: '1.05rem' }}>{comparison.summary}</p>
               </motion.div>
@@ -254,7 +255,7 @@ export default function Compare() {
                 transition={{ delay: 0.3 }}
               >
                 <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>🎯</span> Öneriler
+                  <Target size={18} color="var(--ai-primary)" /> Öneriler
                 </h3>
                 <div className="grid grid-2" style={{ gap: '1rem' }}>
                   {comparison.recommendations.map((rec, idx) => (
@@ -284,7 +285,7 @@ export default function Compare() {
                 transition={{ delay: 0.5 }}
               >
                 <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>🏆</span> Puanlar
+                  <Trophy size={18} color="var(--accent-gold)" /> Puanlar
                 </h3>
                 <div className="grid grid-3" style={{ gap: '1rem' }}>
                   {Object.entries(comparison.scores).map(([tourKey, scores], idx) => (
@@ -340,12 +341,12 @@ export default function Compare() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🔍</div>
+          <div style={{ marginBottom: '1rem' }}><Search size={64} color="var(--text-muted)" /></div>
           <h3 style={{ marginBottom: '1rem' }}>Karşılaştırmak için en az 2 tur gerekli</h3>
           <p style={{ color: 'var(--neutral-gray-500)', marginBottom: '1.5rem' }}>
             Turlar sayfasından 2-3 tur seçin ve tekrar gelin.
           </p>
-          <a href="/tours" className="btn btn-primary">🌍 Turlar Sayfasına Git</a>
+          <a href="/tours" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}><Globe size={18} /> Turlar Sayfasına Git</a>
         </motion.div>
       )}
     </motion.div>
