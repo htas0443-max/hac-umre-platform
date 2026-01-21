@@ -2247,3 +2247,107 @@ select {
     }
   }
 }
+
+/* ===================================================================
+   ACCESSIBILITY - Focus Styles & Screen Reader
+   WCAG 2.1 AA Compliance
+   =================================================================== */
+
+/* Focus Visible - Keyboard Navigation */
+:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* High contrast focus for buttons */
+.btn:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.2);
+}
+
+/* Link focus styles */
+a:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Form input focus */
+.form-input:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 0;
+  border-color: var(--primary-teal);
+}
+
+/* Card focus for clickable cards */
+.card:focus-visible,
+.hover-lift:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 2px;
+}
+
+/* Bottom nav focus */
+.bottom-nav-item:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: -2px;
+  background: rgba(13, 148, 136, 0.1);
+}
+
+/* Hamburger menu focus */
+.hamburger-btn:focus-visible {
+  outline: 2px solid var(--primary-teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip Link - Screen Reader Navigation */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--primary-teal);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0 0 8px 8px;
+  text-decoration: none;
+  font-weight: 600;
+  z-index: 10000;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Screen Reader Only - Visually Hidden */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reduced Motion - Respect User Preferences */
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

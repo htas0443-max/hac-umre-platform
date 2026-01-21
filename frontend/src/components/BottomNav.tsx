@@ -21,6 +21,8 @@ export default function BottomNav() {
     return (
         <motion.nav
             className="bottom-nav"
+            role="navigation"
+            aria-label="Alt gezinme menüsü"
             initial={{ y: 100 }}
             animate={{ y: 0 }}
             transition={{ type: 'spring', stiffness: 100, damping: 20 }}
@@ -37,7 +39,7 @@ export default function BottomNav() {
                             className={`bottom-nav-item ${isActive ? 'active' : ''}`}
                             aria-current={isActive ? 'page' : undefined}
                         >
-                            <span className="bottom-nav-icon"><item.IconComponent size={20} /></span>
+                            <span className="bottom-nav-icon"><item.IconComponent size={20} aria-hidden="true" /></span>
                             <span>{item.label}</span>
                         </Link>
                     );

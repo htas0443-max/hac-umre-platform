@@ -20,6 +20,8 @@ export default function Navbar() {
     <motion.nav
       className="navbar"
       data-testid="navbar"
+      role="navigation"
+      aria-label="Ana gezinme"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 100, damping: 20 }}
@@ -35,6 +37,8 @@ export default function Navbar() {
           className="hamburger-btn"
           onClick={toggleMenu}
           aria-label="Menüyü aç/kapat"
+          aria-expanded={isMenuOpen}
+          aria-controls="mobile-menu"
           data-testid="hamburger-btn"
         >
           <motion.span
@@ -109,16 +113,19 @@ export default function Navbar() {
         {isMenuOpen && (
           <motion.div
             className="navbar-mobile-menu"
+            id="mobile-menu"
+            role="menu"
+            aria-label="Mobil navigasyon menüsü"
             initial="closed"
             animate="open"
             exit="closed"
             variants={menuVariants}
             transition={{ duration: 0.3 }}
           >
-            <Link to="/" className="navbar-mobile-link" onClick={closeMenu}><Home size={18} style={{ marginRight: '0.5rem' }} /> Ana Sayfa</Link>
-            <Link to="/tours" className="navbar-mobile-link" onClick={closeMenu}><Globe size={18} style={{ marginRight: '0.5rem' }} /> Turlar</Link>
-            <Link to="/compare" className="navbar-mobile-link" onClick={closeMenu}><RefreshCw size={18} style={{ marginRight: '0.5rem' }} /> Karşılaştır</Link>
-            <Link to="/chat" className="navbar-mobile-link" onClick={closeMenu}><BookOpen size={18} style={{ marginRight: '0.5rem' }} /> Hac Rehberi</Link>
+            <Link to="/" className="navbar-mobile-link" role="menuitem" onClick={closeMenu}><Home size={18} aria-hidden="true" style={{ marginRight: '0.5rem' }} /> Ana Sayfa</Link>
+            <Link to="/tours" className="navbar-mobile-link" role="menuitem" onClick={closeMenu}><Globe size={18} aria-hidden="true" style={{ marginRight: '0.5rem' }} /> Turlar</Link>
+            <Link to="/compare" className="navbar-mobile-link" role="menuitem" onClick={closeMenu}><RefreshCw size={18} aria-hidden="true" style={{ marginRight: '0.5rem' }} /> Karşılaştır</Link>
+            <Link to="/chat" className="navbar-mobile-link" role="menuitem" onClick={closeMenu}><BookOpen size={18} aria-hidden="true" style={{ marginRight: '0.5rem' }} /> Hac Rehberi</Link>
 
             {user ? (
               <>
