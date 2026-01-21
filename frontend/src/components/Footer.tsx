@@ -76,9 +76,6 @@ const Footer = memo(function Footer() {
                 <Award size={16} color="var(--accent-gold)" /> TÜRSAB Üyesi
               </p>
               <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Lock size={16} /> SSL Güvenli Bağlantı
-              </p>
-              <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Star size={16} color="var(--accent-gold)" /> 1000+ Mutlu Müşteri
               </p>
               <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
