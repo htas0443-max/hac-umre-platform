@@ -24,7 +24,7 @@ export default function AdminApproval() {
   const loadPendingTours = async () => {
     try {
       setLoading(true);
-      const data = await toursApi.getAll({ status: 'pending', limit: 100 } as any);
+      const data = await toursApi.getAll({ status: 'pending', limit: 20 } as any);
       setTours(data.tours);
     } catch (err) {
       console.error('Turlar yüklenemedi:', err);

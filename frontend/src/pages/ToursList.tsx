@@ -43,7 +43,7 @@ export default function ToursList() {
     try {
       setLoading(true);
       const params: any = {
-        limit: 50,
+        limit: 20,
         sort_by: sortBy,
         sort_order: sortOrder,
       };
