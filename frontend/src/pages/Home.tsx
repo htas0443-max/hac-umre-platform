@@ -98,14 +98,14 @@ export default function Home() {
 
           {/* Main Title */}
           <h1 style={{
-            fontSize: '3rem',
+            fontSize: '2.5rem',
             marginBottom: '1rem',
             color: 'var(--primary-teal)',
             fontWeight: 700,
             position: 'relative',
             zIndex: 1
           }}>
-            Hac ve Umre Turları
+            Hac & Umre Turlarını Güvenle Keşfedin
           </h1>
 
           {/* Arabic Bismillah */}
@@ -117,59 +117,36 @@ export default function Home() {
             position: 'relative',
             zIndex: 1
           }}>
-            بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+            بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
           </p>
 
           <p style={{
             fontSize: '1.1rem',
             color: 'var(--text-secondary)',
-            maxWidth: '700px',
+            maxWidth: '600px',
             margin: '0 auto 2rem',
             lineHeight: 1.7,
             position: 'relative',
             zIndex: 1
           }}>
-            Yapay zeka desteği ile en uygun Hac ve Umre turunu bulun. Turları detaylı
-            karşılaştırın, Hac Rehberi ile sorularınıza cevap alın. <strong>Tur şirketleri de kendi ilanlarını
-              ekleyebilir!</strong>
+            Belge kontrolünden geçen tur şirketleri arasından size uygun turu bulun.
+            Fiyatları ve hizmetleri yan yana karşılaştırın.
           </p>
 
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap', position: 'relative', zIndex: 10 }}>
-            {!user ? (
-              <>
-                <MotionLink
-                  to="/tours"
-                  className="btn btn-primary"
-                  data-testid="hero-tours-btn"
-                  style={{ textDecoration: 'none' }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Turları Görüntüle
-                </MotionLink>
-                <MotionLink
-                  to="/register"
-                  className="btn btn-secondary"
-                  data-testid="hero-register-btn"
-                  style={{ textDecoration: 'none' }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Kayıt Ol
-                </MotionLink>
-              </>
-            ) : (
-              <MotionLink
-                to={user.role === 'operator' ? '/operator/dashboard' : '/tours'}
-                className="btn btn-primary"
-                data-testid="hero-tours-btn"
-                style={{ textDecoration: 'none' }}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {user.role === 'operator' ? 'Dashboard\'a Git' : 'Turları Görüntüle'}
-              </MotionLink>
-            )}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem', position: 'relative', zIndex: 10 }}>
+            <MotionLink
+              to="/tours"
+              className="btn btn-primary"
+              data-testid="hero-tours-btn"
+              style={{ textDecoration: 'none', fontSize: '1.1rem', padding: '0.875rem 2rem' }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Turları İncele
+            </MotionLink>
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              ✓ Sadece doğrulanmış firmalar
+            </p>
           </div>
 
           {/* Decorative Islamic Border */}
@@ -404,7 +381,7 @@ export default function Home() {
           {' '}Hayırlı yolculuklar dileriz{' '}
           <span style={{ color: 'var(--accent-gold)' }}>☆</span>
         </div>
-      </motion.div>
+      </motion.div >
     </>
   );
 }
