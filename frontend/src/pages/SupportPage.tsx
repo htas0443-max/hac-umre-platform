@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CreditCard, Calendar, Wrench, Ticket, FileText, HelpCircle, Ticket as TicketIcon, BookOpen, MessageCircle, FileText as FileList, Search, CheckCircle, Clock, Send, ChevronRight, ChevronDown } from 'lucide-react';
 import { ticketsApi } from '../api';
 import { useAuth } from '../AuthContext';
 
 const CATEGORIES = [
-    { id: 'payment', label: 'Ödeme & Fatura', icon: '💳' },
-    { id: 'reservation', label: 'Rezervasyon', icon: '📅' },
-    { id: 'technical', label: 'Teknik Sorun', icon: '🔧' },
-    { id: 'tour', label: 'Tur Bilgisi', icon: '🎫' },
-    { id: 'complaint', label: 'Şikayet & Öneri', icon: '📝' },
-    { id: 'general', label: 'Genel Soru', icon: '❓' },
+    { id: 'payment', label: 'Ödeme & Fatura', IconComponent: CreditCard },
+    { id: 'reservation', label: 'Rezervasyon', IconComponent: Calendar },
+    { id: 'technical', label: 'Teknik Sorun', IconComponent: Wrench },
+    { id: 'tour', label: 'Tur Bilgisi', IconComponent: Ticket },
+    { id: 'complaint', label: 'Şikayet & Öneri', IconComponent: FileText },
+    { id: 'general', label: 'Genel Soru', IconComponent: HelpCircle },
 ];
 
 const FAQ = [
@@ -69,7 +70,7 @@ export default function SupportPage() {
                 animate={{ opacity: 1, scale: 1 }}
             >
                 <div className="card" style={{ padding: '3rem' }}>
-                    <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
+                    <div style={{ marginBottom: '1rem' }}><CheckCircle size={64} color="var(--primary-teal)" /></div>
                     <h2 style={{ marginBottom: '1rem' }}>Talebiniz Alındı!</h2>
                     <p style={{ marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>
                         Ticket No: <strong>#{success}</strong>
@@ -79,7 +80,7 @@ export default function SupportPage() {
                     </p>
                     <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
                         <Link to="/support/tickets" className="btn btn-primary">
-                            📋 Taleplerime Git
+                            <FileList size={16} style={{ marginRight: '0.5rem' }} /> Taleplerime Git
                         </Link>
                         <button onClick={() => { setSuccess(null); setShowForm(false); }} className="btn btn-outline">
                             Yeni Talep
@@ -98,7 +99,7 @@ export default function SupportPage() {
         >
             {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                <h1>🎫 Destek Merkezi</h1>
+                <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><TicketIcon size={28} color="var(--primary-teal)" /> Destek Merkezi</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>
                     Size nasıl yardımcı olabiliriz?
                 </p>
@@ -112,7 +113,7 @@ export default function SupportPage() {
                     whileHover={{ scale: 1.02 }}
                     onClick={() => setExpandedFaq(expandedFaq === -1 ? null : -1)}
                 >
-                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📚</div>
+                    <div style={{ marginBottom: '0.5rem' }}><BookOpen size={32} color="var(--primary-teal)" /></div>
                     <div style={{ fontWeight: 600 }}>SSS</div>
                     <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Sık Sorulanlar</div>
                 </motion.div>
@@ -123,7 +124,7 @@ export default function SupportPage() {
                     whileHover={{ scale: 1.02 }}
                     onClick={() => user ? setShowForm(true) : navigate('/login')}
                 >
-                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💬</div>
+                    <div style={{ marginBottom: '0.5rem' }}><MessageCircle size={32} /></div>
                     <div style={{ fontWeight: 600 }}>Yeni Talep</div>
                     <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>Ticket Oluştur</div>
                 </motion.div>
@@ -134,7 +135,7 @@ export default function SupportPage() {
                         style={{ textAlign: 'center', cursor: 'pointer' }}
                         whileHover={{ scale: 1.02 }}
                     >
-                        <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📋</div>
+                        <div style={{ marginBottom: '0.5rem' }}><FileList size={32} color="var(--primary-teal)" /></div>
                         <div style={{ fontWeight: 600 }}>Taleplerim</div>
                         <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Geçmiş</div>
                     </motion.div>
@@ -143,7 +144,7 @@ export default function SupportPage() {
 
             {/* FAQ Accordion */}
             <div className="card" style={{ marginBottom: '2rem' }}>
-                <h3 style={{ marginBottom: '1rem' }}>🔍 Sık Sorulan Sorular</h3>
+                <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Search size={20} color="var(--primary-teal)" /> Sık Sorulan Sorular</h3>
                 {FAQ.map((item, index) => (
                     <div key={index} style={{ borderBottom: index < FAQ.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
                         <button
@@ -162,7 +163,7 @@ export default function SupportPage() {
                             }}
                         >
                             <span>{item.q}</span>
-                            <span>{expandedFaq === index ? '▼' : '▶'}</span>
+                            <span>{expandedFaq === index ? <ChevronDown size={16} /> : <ChevronRight size={16} />}</span>
                         </button>
                         <AnimatePresence>
                             {expandedFaq === index && (
@@ -189,7 +190,7 @@ export default function SupportPage() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
                     >
-                        <h3 style={{ marginBottom: '1.5rem' }}>💬 Destek Talebi Oluştur</h3>
+                        <h3 style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MessageCircle size={20} color="var(--primary-teal)" /> Destek Talebi Oluştur</h3>
 
                         {error && (
                             <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{error}</div>
@@ -216,7 +217,7 @@ export default function SupportPage() {
                                             whileHover={{ scale: 1.02 }}
                                             whileTap={{ scale: 0.98 }}
                                         >
-                                            <div style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>{cat.icon}</div>
+                                            <div style={{ marginBottom: '0.25rem' }}><cat.IconComponent size={24} color="var(--primary-teal)" /></div>
                                             <div style={{ fontSize: '0.85rem', fontWeight: 500 }}>{cat.label}</div>
                                         </motion.button>
                                     ))}
@@ -270,7 +271,7 @@ export default function SupportPage() {
                                     style={{ flex: 1 }}
                                     disabled={loading || !selectedCategory || !subject.trim() || description.length < 20}
                                 >
-                                    {loading ? '⏳ Gönderiliyor...' : '📤 Gönder'}
+                                    {loading ? <><Clock size={16} /> Gönderiliyor...</> : <><Send size={16} /> Gönder</>}
                                 </button>
                             </div>
                         </form>
@@ -286,7 +287,7 @@ export default function SupportPage() {
                         onClick={() => user ? setShowForm(true) : navigate('/login')}
                         className="btn btn-primary"
                     >
-                        💬 Destek Talebi Oluştur
+                        <MessageCircle size={18} style={{ marginRight: '0.5rem' }} /> Destek Talebi Oluştur
                     </button>
                 </div>
             )}

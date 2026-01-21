@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { MessageCircle, Pin, Brain, User, Bot, Mic, Square, Volume2, Pause, Bell, BellOff, Send, RefreshCw } from 'lucide-react';
 import { toursApi, aiApi } from '../api';
 import type { Tour, ChatMessage } from '../types';
 
@@ -189,7 +190,7 @@ export default function Chat() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1>🕋 Hac Rehberi</h1>
+        <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>🕋 Hac Rehberi</h1>
         <p style={{ color: 'var(--neutral-gray-500)', fontSize: '1.125rem' }}>
           Hac ve Umre turları hakkında sorularınıza yanıt alın
         </p>
@@ -205,7 +206,7 @@ export default function Chat() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <h3 style={{ marginBottom: '1rem' }}>📌 Bağlam Turları</h3>
+            <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Pin size={18} color="var(--primary-teal)" /> Bağlam Turları</h3>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               {contextTours.map((tour) => (
                 <motion.span
@@ -228,7 +229,7 @@ export default function Chat() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
       >
-        <h3 style={{ marginBottom: '1rem' }}>🧠 AI Model Seçimi</h3>
+        <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Brain size={20} color="var(--primary-teal)" /> AI Model Seçimi</h3>
         <div className="chat-provider-grid" style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
           <motion.label
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', padding: '0.75rem 1rem', borderRadius: '12px', background: provider === 'openai' ? 'var(--primary-light)' : 'transparent', border: '2px solid', borderColor: provider === 'openai' ? 'var(--primary-emerald)' : 'var(--neutral-gray-300)', flex: 1 }}
@@ -305,7 +306,7 @@ export default function Chat() {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
           >
-            <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>💬</div>
+            <div style={{ marginBottom: '1rem' }}><MessageCircle size={64} color="var(--text-muted)" /></div>
             <p style={{ fontSize: '1.125rem' }}>Henüz mesaj yok. Aşağıdan sohbete başlayın.</p>
           </motion.div>
         )}
@@ -333,7 +334,7 @@ export default function Chat() {
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
             >
               <div style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '0.875rem', opacity: 0.8 }}>
-                {msg.role === 'user' ? '👤 Siz' : '🤖 AI Asistan'}
+                {msg.role === 'user' ? <><User size={14} /> Siz</> : <><Bot size={14} /> AI Asistan</>}
               </div>
               <div style={{ lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{msg.content}</div>
               <div style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '0.75rem' }}>
@@ -358,7 +359,7 @@ export default function Chat() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '0.875rem' }}>🤖 AI Asistan</div>
+            <div style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Bot size={14} /> AI Asistan</div>
             <motion.div
               style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
               animate={{ opacity: [0.5, 1, 0.5] }}
@@ -426,7 +427,7 @@ export default function Chat() {
               }}
               title={isListening ? 'Kaydı Durdur' : 'Sesli Konuş'}
             >
-              {isListening ? '⏹️' : '🎤'}
+              {isListening ? <Square size={20} /> : <Mic size={20} />}
             </motion.button>
 
             {/* Speaker Button (Stop/Play) */}
@@ -446,7 +447,7 @@ export default function Chat() {
               }}
               title={isSpeaking ? 'Sesi Durdur' : 'Son Yanıtı Oku'}
             >
-              {isSpeaking ? '⏸️' : '🔊'}
+              {isSpeaking ? <Pause size={20} /> : <Volume2 size={20} />}
             </motion.button>
 
             {/* Voice Toggle */}
@@ -463,7 +464,7 @@ export default function Chat() {
               }}
               title={voiceEnabled ? 'Otomatik Sesli Yanıt Açık' : 'Otomatik Sesli Yanıt Kapalı'}
             >
-              {voiceEnabled ? '🔔' : '🔕'}
+              {voiceEnabled ? <Bell size={20} /> : <BellOff size={20} />}
             </motion.button>
           </div>
 
@@ -476,7 +477,7 @@ export default function Chat() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            {loading ? '🔄 Gönderiliyor...' : '🚀 Gönder'}
+            {loading ? <><RefreshCw size={16} className="animate-spin" /> Gönderiliyor...</> : <><Send size={16} /> Gönder</>}
           </motion.button>
         </div>
       </motion.div>
