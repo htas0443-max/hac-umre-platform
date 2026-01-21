@@ -197,10 +197,6 @@ export default function Home() {
             <Phone size={18} color="var(--primary-teal)" />
             <span className="trust-item-text">7/24 Destek</span>
           </div>
-          <div className="trust-item">
-            <Lock size={18} color="var(--primary-teal)" />
-            <span className="trust-item-text">Güvenli Ödeme</span>
-          </div>
         </motion.div>
 
         {/* Features Section */}
