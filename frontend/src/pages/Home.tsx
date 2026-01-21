@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { motion } from 'framer-motion';
-import { Star, Phone, Lock, RefreshCw, MessageSquare, Search, Building, Megaphone, KeyRound, BarChart3, Plus, Sparkles } from 'lucide-react';
+import { Lock, RefreshCw, MessageSquare, Search, Building, Megaphone, KeyRound, BarChart3, Plus, Sparkles, CheckCircle, FileText, HeadphonesIcon } from 'lucide-react';
 import PageMeta from '../components/PageMeta';
 
 // Create MotionLink for proper Framer Motion + React Router integration
@@ -190,12 +190,16 @@ export default function Home() {
           variants={itemVariants}
         >
           <div className="trust-item">
-            <Star size={18} color="var(--accent-gold)" />
-            <span className="trust-item-text">1000+ Mutlu Müşteri</span>
+            <CheckCircle size={18} color="var(--accent-gold)" />
+            <span className="trust-item-text">Belge kontrolünden geçen firmalar</span>
           </div>
           <div className="trust-item">
-            <Phone size={18} color="var(--primary-teal)" />
-            <span className="trust-item-text">7/24 Destek</span>
+            <FileText size={18} color="var(--primary-teal)" />
+            <span className="trust-item-text">Kontrol edilen ve doğrulanan ilanlar</span>
+          </div>
+          <div className="trust-item">
+            <HeadphonesIcon size={18} color="var(--primary-teal)" />
+            <span className="trust-item-text">Destek ekibimiz yanınızda</span>
           </div>
         </motion.div>
 
