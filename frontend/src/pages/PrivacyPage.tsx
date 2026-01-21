@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { Shield } from 'lucide-react';
 
 export default function PrivacyPage() {
     return (
@@ -12,7 +13,7 @@ export default function PrivacyPage() {
             <div className="card">
                 <div className="card-header" style={{ textAlign: 'center', marginBottom: '2rem' }}>
                     <h1 style={{ fontSize: '2rem', color: 'var(--primary-teal)' }}>
-                        🔒 Gizlilik Politikası
+                        <Shield size={28} color="var(--primary-teal)" style={{ marginRight: '0.5rem' }} /> Gizlilik Politikası
                     </h1>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                         Son güncelleme: 17 Ocak 2026

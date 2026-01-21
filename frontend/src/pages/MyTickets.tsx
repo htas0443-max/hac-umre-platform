@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { ClipboardList, Inbox, MessageCircle } from 'lucide-react';
 import { ticketsApi } from '../api';
 import type { Ticket } from '../types';
 import StatusBadge from '../components/StatusBadge';
@@ -60,7 +61,7 @@ export default function MyTickets() {
     if (loading) {
         return (
             <div style={{ maxWidth: '800px', margin: '2rem auto' }}>
-                <h1 style={{ marginBottom: '2rem' }}>📋 Destek Taleplerim</h1>
+                <h1 style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><ClipboardList size={24} color="var(--primary-teal)" /> Destek Taleplerim</h1>
                 <div className="grid grid-2">
                     {[1, 2, 3, 4].map((i) => (
                         <div key={i} className="card skeleton-card" style={{
@@ -83,7 +84,7 @@ export default function MyTickets() {
         >
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h1>📋 Destek Taleplerim</h1>
+                <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><ClipboardList size={24} color="var(--primary-teal)" /> Destek Taleplerim</h1>
                 <Link to="/support" className="btn btn-primary btn-small">
                     + Yeni Talep
                 </Link>
@@ -114,12 +115,12 @@ export default function MyTickets() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                 >
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
+                    <div style={{ marginBottom: '1rem' }}><Inbox size={48} color="var(--text-muted)" /></div>
                     <p style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>
                         Henüz destek talebiniz yok.
                     </p>
                     <Link to="/support" className="btn btn-primary">
-                        💬 Yeni Talep Oluştur
+                        <MessageCircle size={16} style={{ marginRight: '0.5rem' }} /> Yeni Talep Oluştur
                     </Link>
                 </motion.div>
             ) : (

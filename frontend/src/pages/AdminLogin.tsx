@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Lock, Shield, Mail, Eye, EyeOff, Clock, LogIn } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 
 // Admin lockout configuration
@@ -159,7 +160,7 @@ export default function AdminLogin() {
                         fontSize: '0.9rem',
                         fontWeight: 600
                     }}>
-                        🔐 Admin Paneli
+                        <Lock size={16} style={{ marginRight: '0.25rem' }} /> Admin Paneli
                     </div>
                 </motion.div>
 
@@ -179,7 +180,7 @@ export default function AdminLogin() {
                 >
                     {/* Header */}
                     <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                        <div style={{ fontSize: '3rem', marginBottom: '0.5rem' }}>🛡️</div>
+                        <Shield size={48} color="#a78bfa" style={{ marginBottom: '0.5rem' }} />
                         <h1 style={{
                             color: '#ffffff',
                             fontSize: '1.75rem',
@@ -254,7 +255,7 @@ export default function AdminLogin() {
                                 marginBottom: '0.5rem',
                                 fontWeight: 500
                             }}>
-                                📧 E-posta
+                                <Mail size={16} style={{ marginRight: '0.25rem' }} /> E-posta
                             </label>
                             <input
                                 type="email"
@@ -294,7 +295,7 @@ export default function AdminLogin() {
                                 marginBottom: '0.5rem',
                                 fontWeight: 500
                             }}>
-                                🔒 Şifre
+                                <Lock size={16} style={{ marginRight: '0.25rem' }} /> Şifre
                             </label>
                             <div style={{ position: 'relative' }}>
                                 <input
@@ -341,7 +342,7 @@ export default function AdminLogin() {
                                     }}
                                     tabIndex={-1}
                                 >
-                                    {showPassword ? '🙈' : '👁'}
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
                             </div>
                         </div>
@@ -366,7 +367,7 @@ export default function AdminLogin() {
                             whileHover={!isLocked ? { scale: 1.02 } : {}}
                             whileTap={!isLocked ? { scale: 0.98 } : {}}
                         >
-                            {loading ? '⏳ Doğrulanıyor...' : isLocked ? '🔒 Kilitli' : '🔐 Giriş Yap'}
+                            {loading ? <><Clock size={16} style={{ marginRight: '0.25rem' }} /> Doğrulanıyor...</> : isLocked ? <><Lock size={16} style={{ marginRight: '0.25rem' }} /> Kilitli</> : <><LogIn size={16} style={{ marginRight: '0.25rem' }} /> Giriş Yap</>}
                         </motion.button>
                     </form>
 
@@ -379,7 +380,7 @@ export default function AdminLogin() {
                         textAlign: 'center'
                     }}>
                         <div style={{ color: '#a78bfa', fontSize: '0.8rem' }}>
-                            🔒 Bu giriş şifreli bağlantı ile korunmaktadır
+                            <Lock size={14} style={{ marginRight: '0.25rem' }} /> Bu giriş şifreli bağlantı ile korunmaktadır
                         </div>
                         <div style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
                             Tüm giriş denemeleri kayıt altına alınmaktadır
