@@ -1,23 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { CreditCard, Calendar, Wrench, Ticket, FileText, HelpCircle, MessageCircle, Shield, User, XCircle, CheckCircle, Clock, Send } from 'lucide-react';
 import { ticketsApi } from '../api';
-import type { Ticket, TicketMessage } from '../types';
+import type { Ticket as TicketType, TicketMessage } from '../types';
 import StatusBadge from '../components/StatusBadge';
 import Breadcrumb from '../components/Breadcrumb';
 
-const CATEGORY_LABELS: Record<string, string> = {
-    payment: '💳 Ödeme & Fatura',
-    reservation: '📅 Rezervasyon',
-    technical: '🔧 Teknik Sorun',
-    tour: '🎫 Tur Bilgisi',
-    complaint: '📝 Şikayet & Öneri',
-    general: '❓ Genel Soru',
+const CATEGORY_MAP: Record<string, { label: string; IconComponent: any }> = {
+    payment: { label: 'Ödeme & Fatura', IconComponent: CreditCard },
+    reservation: { label: 'Rezervasyon', IconComponent: Calendar },
+    technical: { label: 'Teknik Sorun', IconComponent: Wrench },
+    tour: { label: 'Tur Bilgisi', IconComponent: Ticket },
+    complaint: { label: 'Şikayet & Öneri', IconComponent: FileText },
+    general: { label: 'Genel Soru', IconComponent: HelpCircle },
 };
 
 export default function TicketDetail() {
     const { id } = useParams<{ id: string }>();
-    const [ticket, setTicket] = useState<Ticket | null>(null);
+    const [ticket, setTicket] = useState<TicketType | null>(null);
     const [messages, setMessages] = useState<TicketMessage[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -85,7 +86,7 @@ export default function TicketDetail() {
         return (
             <div style={{ maxWidth: '800px', margin: '2rem auto', textAlign: 'center' }}>
                 <div className="card" style={{ padding: '3rem' }}>
-                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>❌</div>
+                    <div style={{ marginBottom: '1rem' }}><XCircle size={48} color="#DC2626" /></div>
                     <p>{error || 'Talep bulunamadı'}</p>
                     <Link to="/support/tickets" className="btn btn-primary" style={{ marginTop: '1rem' }}>
                         ← Taleplerime Dön
@@ -114,8 +115,18 @@ export default function TicketDetail() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                    <span>{CATEGORY_LABELS[ticket.category] || ticket.category}</span>
-                    <span>📅 {formatDate(ticket.created_at)}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        {CATEGORY_MAP[ticket.category] ? (
+                            <>
+                                {(() => {
+                                    const CategoryIcon = CATEGORY_MAP[ticket.category].IconComponent;
+                                    return <CategoryIcon size={14} />;
+                                })()}
+                                {' '}{CATEGORY_MAP[ticket.category].label}
+                            </>
+                        ) : ticket.category}
+                    </span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Calendar size={14} /> {formatDate(ticket.created_at)}</span>
                 </div>
 
                 <div style={{ padding: '1rem', background: 'var(--bg-secondary)', borderRadius: '8px' }}>
@@ -125,7 +136,7 @@ export default function TicketDetail() {
 
             {/* Messages */}
             <div className="card" style={{ marginBottom: '1.5rem' }}>
-                <h3 style={{ marginBottom: '1rem' }}>💬 Mesajlar</h3>
+                <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MessageCircle size={20} color="var(--primary-teal)" /> Mesajlar</h3>
 
                 {messages.length === 0 ? (
                     <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem' }}>
@@ -147,7 +158,7 @@ export default function TicketDetail() {
                             >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.85rem' }}>
                                     <span style={{ fontWeight: 600 }}>
-                                        {msg.is_admin ? '🛡️ Destek Ekibi' : '👤 Siz'}
+                                        {msg.is_admin ? <><Shield size={14} /> Destek Ekibi</> : <><User size={14} /> Siz</>}
                                     </span>
                                     <span style={{ color: 'var(--text-secondary)' }}>{formatDate(msg.created_at)}</span>
                                 </div>
@@ -177,7 +188,7 @@ export default function TicketDetail() {
                                 className="btn btn-primary"
                                 disabled={sending || !newMessage.trim()}
                             >
-                                {sending ? '⏳ Gönderiliyor...' : '📤 Gönder'}
+                                {sending ? <><Clock size={14} /> Gönderiliyor...</> : <><Send size={14} /> Gönder</>}
                             </button>
                         </div>
                     </form>
@@ -186,7 +197,7 @@ export default function TicketDetail() {
 
             {ticket.status === 'resolved' && (
                 <div style={{ textAlign: 'center', padding: '1.5rem', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '8px' }}>
-                    <p>✅ Bu talep çözüldü olarak işaretlendi.</p>
+                    <p style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}><CheckCircle size={18} color="#10B981" /> Bu talep çözüldü olarak işaretlendi.</p>
                     <Link to="/support" className="btn btn-outline" style={{ marginTop: '1rem' }}>
                         Yeni Talep Oluştur
                     </Link>

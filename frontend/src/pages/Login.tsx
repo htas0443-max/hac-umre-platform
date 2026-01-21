@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Lock, Mail, Eye, EyeOff, Key, AlertTriangle, Clock, Rocket, Shield } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 
 // Login attempt tracking
@@ -131,7 +132,7 @@ export default function Login() {
           className="card"
           style={{ textAlign: 'center', padding: '2.5rem' }}
         >
-          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>⚠️</div>
+          <div style={{ marginBottom: '1rem' }}><AlertTriangle size={64} color="#DC2626" /></div>
           <h2 style={{ marginBottom: '1rem', color: 'var(--error-red)' }}>
             Hesap Geçici Olarak Kilitlendi
           </h2>
@@ -151,7 +152,7 @@ export default function Login() {
             className="btn btn-outline"
             style={{ marginBottom: '1rem', display: 'inline-block' }}
           >
-            📧 Şifre Sıfırlama Linki Gönder
+            <Mail size={16} style={{ marginRight: '0.5rem' }} /> Şifre Sıfırlama Linki Gönder
           </Link>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
             Acil erişim için IT desteğe ulaşın
@@ -183,7 +184,7 @@ export default function Login() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            🔐 Giriş Yap
+            <Lock size={24} style={{ marginRight: '0.5rem' }} /> Giriş Yap
           </motion.h2>
           <p className="card-subtitle">Hesabınıza giriş yapın</p>
         </div>
@@ -223,7 +224,7 @@ export default function Login() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <label className="form-label" htmlFor="email">📧 E-posta</label>
+            <label className="form-label" htmlFor="email" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Mail size={16} /> E-posta</label>
             <input
               type="email"
               id="email"
@@ -243,7 +244,7 @@ export default function Login() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <label className="form-label" htmlFor="password">🔒 Şifre</label>
+            <label className="form-label" htmlFor="password" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Lock size={16} /> Şifre</label>
             <div style={{ position: 'relative' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -275,7 +276,7 @@ export default function Login() {
                 tabIndex={-1}
                 aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
               >
-                {showPassword ? '🙈' : '👁'}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </motion.div>
@@ -291,7 +292,7 @@ export default function Login() {
               style={{ color: 'var(--primary-teal)', fontSize: '0.9rem' }}
               data-testid="forgot-password-link"
             >
-              🔑 Şifremi unuttum
+              <Key size={14} style={{ marginRight: '0.25rem' }} /> Şifremi unuttum
             </Link>
           </motion.div>
 
@@ -307,7 +308,7 @@ export default function Login() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
-            {loading ? '⏳ Giriş yapılıyor...' : '🚀 Giriş Yap'}
+            {loading ? <><Clock size={16} style={{ marginRight: '0.5rem' }} /> Giriş yapılıyor...</> : <><Rocket size={16} style={{ marginRight: '0.5rem' }} /> Giriş Yap</>}
           </motion.button>
         </form>
 
@@ -326,7 +327,7 @@ export default function Login() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.65 }}
         >
-          🔒 SSL ile güvenli bağlantı
+          <Shield size={14} style={{ marginRight: '0.25rem' }} /> SSL ile güvenli bağlantı
         </motion.div>
 
         <motion.p

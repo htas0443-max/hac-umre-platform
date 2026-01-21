@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Search, Home, Globe, MessageSquare } from 'lucide-react';
 
 export default function NotFound() {
     return (
@@ -23,7 +24,7 @@ export default function NotFound() {
                 animate={{ rotate: [0, -10, 10, -10, 0] }}
                 transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
             >
-                🔍
+                <Search size={96} color="var(--primary-teal)" />
             </motion.div>
 
             {/* Error Code */}
@@ -63,14 +64,14 @@ export default function NotFound() {
                     className="btn btn-primary"
                     style={{ textDecoration: 'none' }}
                 >
-                    🏠 Ana Sayfaya Dön
+                    <Home size={18} style={{ marginRight: '0.5rem' }} /> Ana Sayfaya Dön
                 </Link>
                 <Link
                     to="/tours"
                     className="btn btn-outline"
                     style={{ textDecoration: 'none' }}
                 >
-                    🕌 Turları Görüntüle
+                    <Globe size={18} style={{ marginRight: '0.5rem' }} /> Turları Görüntüle
                 </Link>
             </div>
 
@@ -83,7 +84,7 @@ export default function NotFound() {
                 border: '1px solid var(--border-color)'
             }}>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                    🤖 Yardıma mı ihtiyacınız var?{' '}
+                    <MessageSquare size={16} style={{ marginRight: '0.25rem' }} /> Yardıma mı ihtiyacınız var?{' '}
                     <Link to="/chat" style={{ color: 'var(--primary-teal)' }}>
                         Hac Rehberi ile konuşun
                     </Link>

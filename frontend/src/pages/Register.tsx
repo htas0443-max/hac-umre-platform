@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { User, Mail, Lock, Eye, EyeOff, Sparkles, Clock, PartyPopper, Shield, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import PasswordStrength from '../components/PasswordStrength';
 
@@ -91,7 +92,7 @@ export default function Register() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            ✨ Kayıt Ol
+            <Sparkles size={24} style={{ marginRight: '0.5rem' }} /> Kayıt Ol
           </motion.h2>
           <p className="card-subtitle">Yeni hesap oluşturun</p>
         </div>
@@ -118,7 +119,7 @@ export default function Register() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.35 }}
           >
-            <label className="form-label" htmlFor="fullName">👤 Ad Soyad</label>
+            <label className="form-label" htmlFor="fullName" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><User size={16} /> Ad Soyad</label>
             <input
               type="text"
               id="fullName"
@@ -138,7 +139,7 @@ export default function Register() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <label className="form-label" htmlFor="email">📧 E-posta</label>
+            <label className="form-label" htmlFor="email" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Mail size={16} /> E-posta</label>
             <input
               type="email"
               id="email"
@@ -158,7 +159,7 @@ export default function Register() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <label className="form-label" htmlFor="password">🔒 Şifre</label>
+            <label className="form-label" htmlFor="password" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Lock size={16} /> Şifre</label>
             <div style={{ position: 'relative' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -190,7 +191,7 @@ export default function Register() {
                 tabIndex={-1}
                 aria-label={showPassword ? 'Şifreyi gizle' : 'Şifreyi göster'}
               >
-                {showPassword ? '🙈' : '👁'}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
             {/* Password Strength Indicator */}
@@ -203,7 +204,7 @@ export default function Register() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.6 }}
           >
-            <label className="form-label" htmlFor="confirmPassword">🔒 Şifre Tekrar</label>
+            <label className="form-label" htmlFor="confirmPassword" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Lock size={16} /> Şifre Tekrar</label>
             <input
               type={showPassword ? 'text' : 'password'}
               id="confirmPassword"
@@ -217,7 +218,7 @@ export default function Register() {
               data-testid="register-confirm-password-input"
             />
             {!passwordsMatch && (
-              <span className="input-error-text">⚠️ Şifreler eşleşmiyor</span>
+              <span className="input-error-text" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><AlertTriangle size={14} /> Şifreler eşleşmiyor</span>
             )}
           </motion.div>
 
@@ -256,7 +257,7 @@ export default function Register() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
           >
-            {loading ? '⏳ Kayıt yapılıyor...' : '🎉 Kayıt Ol'}
+            {loading ? <><Clock size={16} style={{ marginRight: '0.5rem' }} /> Kayıt yapılıyor...</> : <><PartyPopper size={16} style={{ marginRight: '0.5rem' }} /> Kayıt Ol</>}
           </motion.button>
         </form>
 
@@ -275,7 +276,7 @@ export default function Register() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.75 }}
         >
-          🔒 Verileriniz güvenle korunmaktadır
+          <Shield size={14} style={{ marginRight: '0.25rem' }} /> Verileriniz güvenle korunmaktadır
         </motion.div>
 
         <motion.p
