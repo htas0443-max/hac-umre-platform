@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Crown, Search, CheckSquare, CheckCircle, XCircle, Clock, Building2, MapPin, Inbox } from 'lucide-react';
 import { adminApi, toursApi } from '../api';
 import StatusBadge from '../components/StatusBadge';
 import Breadcrumb from '../components/Breadcrumb';
@@ -151,7 +152,7 @@ export default function AdminApproval() {
 
       {/* Header */}
       <div style={{ marginBottom: '1.5rem' }}>
-        <h1>👑 Tur Onay Yönetimi</h1>
+        <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Crown size={28} color="var(--accent-gold)" /> Tur Onay Yönetimi</h1>
         <p style={{ color: 'var(--text-secondary)' }}>
           {tours.length} tur onay bekliyor
         </p>
@@ -159,7 +160,7 @@ export default function AdminApproval() {
 
       {/* Search Bar */}
       <div className="admin-search">
-        <span className="admin-search-icon">🔍</span>
+        <Search size={18} color="var(--text-secondary)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
         <input
           type="text"
           className="admin-search-input"
@@ -181,7 +182,7 @@ export default function AdminApproval() {
           >
             <div className="bulk-action-bar-info">
               <span className="bulk-action-bar-count">
-                ☑️ {selectedTours.size} tur seçildi
+                <CheckSquare size={16} /> {selectedTours.size} tur seçildi
               </span>
               <button
                 onClick={clearSelection}
@@ -197,7 +198,7 @@ export default function AdminApproval() {
                 className="btn btn-small btn-bulk-approve"
                 disabled={bulkProcessing}
               >
-                {bulkProcessing ? '⏳ İşleniyor...' : '✅ Toplu Onayla'}
+                {bulkProcessing ? <><Clock size={16} /> İşleniyor...</> : <><CheckCircle size={16} /> Toplu Onayla</>}
               </button>
             </div>
           </motion.div>
@@ -212,7 +213,7 @@ export default function AdminApproval() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📭</div>
+          <div style={{ marginBottom: '1rem' }}><Inbox size={48} color="var(--text-muted)" /></div>
           <p>{searchQuery ? 'Arama sonucu bulunamadı.' : 'Onay bekleyen tur yok.'}</p>
         </motion.div>
       ) : (
@@ -281,8 +282,8 @@ export default function AdminApproval() {
                   </div>
 
                   <div style={{ marginBottom: '1rem', fontSize: '0.85rem', lineHeight: 1.8 }}>
-                    <p><strong>🏨</strong> {tour.hotel}</p>
-                    <p><strong>📍</strong> {tour.start_date} - {tour.end_date}</p>
+                    <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Building2 size={14} color="var(--primary-teal)" /> {tour.hotel}</p>
+                    <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MapPin size={14} color="var(--primary-teal)" /> {tour.start_date} - {tour.end_date}</p>
                   </div>
 
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -293,7 +294,7 @@ export default function AdminApproval() {
                       disabled={processing === tour._id}
                       data-testid={`approve-${tour._id}`}
                     >
-                      {processing === tour._id ? '⏳' : '✅'} Onayla
+                      {processing === tour._id ? <Clock size={14} /> : <CheckCircle size={14} />} Onayla
                     </button>
                     <button
                       onClick={() => {
@@ -305,7 +306,7 @@ export default function AdminApproval() {
                       disabled={processing === tour._id}
                       data-testid={`reject-${tour._id}`}
                     >
-                      ❌ Reddet
+                      <XCircle size={14} /> Reddet
                     </button>
                   </div>
                 </motion.div>

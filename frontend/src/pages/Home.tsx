@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../AuthContext';
 import { motion } from 'framer-motion';
+import { Star, Phone, Lock, RefreshCw, MessageSquare, Search, Building, Megaphone, KeyRound, BarChart3, Plus, Sparkles } from 'lucide-react';
 import PageMeta from '../components/PageMeta';
 
 // Create MotionLink for proper Framer Motion + React Router integration
@@ -144,7 +145,7 @@ export default function Home() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  🕌 Turları Görüntüle
+                  Turları Görüntüle
                 </MotionLink>
                 <MotionLink
                   to="/register"
@@ -166,7 +167,7 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
-                {user.role === 'operator' ? 'Dashboard\'a Git' : '🕌 Turları Görüntüle'}
+                {user.role === 'operator' ? 'Dashboard\'a Git' : 'Turları Görüntüle'}
               </MotionLink>
             )}
           </div>
@@ -189,15 +190,15 @@ export default function Home() {
           variants={itemVariants}
         >
           <div className="trust-item">
-            <span className="trust-item-icon">⭐</span>
+            <Star size={18} color="var(--accent-gold)" />
             <span className="trust-item-text">1000+ Mutlu Müşteri</span>
           </div>
           <div className="trust-item">
-            <span className="trust-item-icon">📞</span>
+            <Phone size={18} color="var(--primary-teal)" />
             <span className="trust-item-text">7/24 Destek</span>
           </div>
           <div className="trust-item">
-            <span className="trust-item-icon">🔒</span>
+            <Lock size={18} color="var(--primary-teal)" />
             <span className="trust-item-text">Güvenli Ödeme</span>
           </div>
         </motion.div>
@@ -231,7 +232,7 @@ export default function Home() {
               whileTap={{ scale: 0.98 }}
               style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer', display: 'block' }}
             >
-              <div className="feature-icon">🔄</div>
+              <div className="feature-icon"><RefreshCw size={32} color="var(--primary-teal)" /></div>
               <h3>AI Karşılaştırma</h3>
               <p>Yapay zeka ile turları detaylı karşılaştırın.</p>
             </MotionLink>
@@ -245,7 +246,7 @@ export default function Home() {
               whileTap={{ scale: 0.98 }}
               style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer', display: 'block' }}
             >
-              <div className="feature-icon">🤖</div>
+              <div className="feature-icon"><MessageSquare size={32} color="var(--primary-teal)" /></div>
               <h3>Hac Rehberi</h3>
               <p>Hac ve Umre ile ilgili sorularınıza AI ile cevap alın.</p>
             </MotionLink>
@@ -259,7 +260,7 @@ export default function Home() {
               whileTap={{ scale: 0.98 }}
               style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer', display: 'block' }}
             >
-              <div className="feature-icon">🔍</div>
+              <div className="feature-icon"><Search size={32} color="var(--primary-teal)" /></div>
               <h3>Detaylı Filtreleme</h3>
               <p>Fiyat, tarih, operatör ve daha fazla kritere göre filtreleyin.</p>
             </MotionLink>
@@ -274,7 +275,7 @@ export default function Home() {
                 whileTap={{ scale: 0.98 }}
                 style={{ textDecoration: 'none', color: 'inherit', cursor: 'pointer', display: 'block' }}
               >
-                <div className="feature-icon">🏢</div>
+                <div className="feature-icon"><Building size={32} color="var(--primary-teal)" /></div>
                 <h3>Tur Şirketi İlanları</h3>
                 <p>İlanlarınızı yönetin ve yeni turlar ekleyin.</p>
               </MotionLink>
@@ -304,7 +305,7 @@ export default function Home() {
           {!user && (
             <div className="grid grid-2">
               <div className="card islamic-card" style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📣</div>
+                <div style={{ marginBottom: '0.75rem' }}><Megaphone size={40} color="var(--accent-gold)" /></div>
                 <h3>İlan Verin</h3>
                 <p>Tur ilanlarınızı kolayca oluşturun ve binlerce müşteriye ulaşın.</p>
                 <MotionLink
@@ -315,11 +316,11 @@ export default function Home() {
                   whileTap={{ scale: 0.95 }}
                   data-testid="operator-register-btn"
                 >
-                  🚀 Şimdi Başlayın
+                  <Sparkles size={18} style={{ marginRight: '0.5rem' }} /> Şimdi Başlayın
                 </MotionLink>
               </div>
               <div className="card islamic-card" style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🔑</div>
+                <div style={{ marginBottom: '0.75rem' }}><KeyRound size={40} color="var(--primary-teal)" /></div>
                 <h3>Zaten Üye misiniz?</h3>
                 <p>Giriş yaparak turlarınızı yönetin ve ilanlarınızı düzenleyin.</p>
                 <MotionLink
@@ -330,7 +331,7 @@ export default function Home() {
                   whileTap={{ scale: 0.95 }}
                   data-testid="operator-login-btn"
                 >
-                  🔐 Giriş Yapın
+                  <Lock size={18} style={{ marginRight: '0.5rem' }} /> Giriş Yapın
                 </MotionLink>
               </div>
             </div>
@@ -340,7 +341,7 @@ export default function Home() {
           {user && user.role === 'operator' && (
             <div className="grid grid-2">
               <div className="card islamic-card" style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>📊</div>
+                <div style={{ marginBottom: '0.75rem' }}><BarChart3 size={40} color="var(--primary-teal)" /></div>
                 <h3>Turlarınızı Yönetin</h3>
                 <p>İlanlarınızı düzenleyin, yeni turlar ekleyin ve rezervasyonları takip edin.</p>
                 <MotionLink
@@ -351,11 +352,11 @@ export default function Home() {
                   whileTap={{ scale: 0.95 }}
                   data-testid="operator-dashboard-btn"
                 >
-                  📈 Dashboard'a Git
+                  <BarChart3 size={18} style={{ marginRight: '0.5rem' }} /> Dashboard'a Git
                 </MotionLink>
               </div>
               <div className="card islamic-card" style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>➕</div>
+                <div style={{ marginBottom: '0.75rem' }}><Plus size={40} color="var(--accent-gold)" /></div>
                 <h3>Yeni İlan Oluşturun</h3>
                 <p>Hızlıca yeni tur ilanı oluşturun ve müşterilerinize ulaşın.</p>
                 <MotionLink
@@ -366,7 +367,7 @@ export default function Home() {
                   whileTap={{ scale: 0.95 }}
                   data-testid="operator-create-btn"
                 >
-                  ✨ İlan Oluştur
+                  <Sparkles size={18} style={{ marginRight: '0.5rem' }} /> İlan Oluştur
                 </MotionLink>
               </div>
             </div>
@@ -375,7 +376,7 @@ export default function Home() {
           {/* Scenario 3: Logged in as Regular User - Show "Become Operator" CTA */}
           {user && user.role === 'user' && (
             <div className="card islamic-card" style={{ textAlign: 'center', maxWidth: '500px', margin: '0 auto' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>🏢</div>
+              <div style={{ marginBottom: '0.75rem' }}><Building size={40} color="var(--primary-teal)" /></div>
               <h3>Tur Şirketi misiniz?</h3>
               <p>Siz de platformumuzda tur ilanları vererek binlerce müşteriye ulaşabilirsiniz.</p>
               <MotionLink
@@ -386,7 +387,7 @@ export default function Home() {
                 whileTap={{ scale: 0.95 }}
                 data-testid="become-operator-btn"
               >
-                📣 İlan Vermeye Başlayın
+                <Megaphone size={18} style={{ marginRight: '0.5rem' }} /> İlan Vermeye Başlayın
               </MotionLink>
             </div>
           )}
