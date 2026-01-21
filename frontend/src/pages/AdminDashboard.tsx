@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { BarChart3, Clock, CheckCircle } from 'lucide-react';
 import { toursApi } from '../api';
 import Breadcrumb from '../components/Breadcrumb';
 
@@ -55,14 +56,14 @@ export default function AdminDashboard() {
         {
             label: 'Toplam Tur',
             value: stats.totalTours,
-            icon: '📊',
+            IconComponent: BarChart3,
             color: 'linear-gradient(135deg, #E8F5E9 0%, #A8D5BA 100%)',
             link: '/tours'
         },
         {
             label: 'Bekleyen Onay',
             value: stats.pendingTours,
-            icon: '⏳',
+            IconComponent: Clock,
             color: 'linear-gradient(135deg, #FEF3C7 0%, #FCD34D 100%)',
             link: '/admin/approval',
             urgent: stats.pendingTours > 0
@@ -70,7 +71,7 @@ export default function AdminDashboard() {
         {
             label: 'Onaylı Tur',
             value: stats.approvedTours,
-            icon: '✅',
+            IconComponent: CheckCircle,
             color: 'linear-gradient(135deg, #D1FAE5 0%, #34D399 100%)',
             link: '/tours'
         },
@@ -81,7 +82,7 @@ export default function AdminDashboard() {
             <div className="admin-dashboard" data-testid="dashboard-loading">
                 <Breadcrumb />
                 <div style={{ marginBottom: '2rem' }}>
-                    <h1>📊 Admin Dashboard</h1>
+                    <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><BarChart3 size={28} color="var(--primary-teal)" /> Admin Dashboard</h1>
                     <p style={{ color: 'var(--text-secondary)' }}>Yükleniyor...</p>
                 </div>
                 {/* Skeleton Cards */}
@@ -116,7 +117,7 @@ export default function AdminDashboard() {
 
             {/* Header */}
             <div style={{ marginBottom: '2rem' }}>
-                <h1>📊 Admin Dashboard</h1>
+                <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><BarChart3 size={28} color="var(--primary-teal)" /> Admin Dashboard</h1>
                 <p style={{ color: 'var(--text-secondary)' }}>
                     Platform durumunu izleyin ve yönetin
                 </p>
@@ -168,7 +169,7 @@ export default function AdminDashboard() {
                                         Acil
                                     </div>
                                 )}
-                                <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>{card.icon}</div>
+                                <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}><card.IconComponent size={40} color="#1a1a1a" /></div>
                                 <div style={{ fontSize: '2.5rem', fontWeight: 700, marginBottom: '0.25rem', color: '#1a1a1a' }}>
                                     {card.value}
                                 </div>

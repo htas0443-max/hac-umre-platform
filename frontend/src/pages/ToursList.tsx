@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Globe, Search, Building, Building2, Plane, User, Package, Star, FileText, MessageCircle } from 'lucide-react';
 import { toursApi } from '../api';
 import type { Tour } from '../types';
 
@@ -122,7 +123,7 @@ export default function ToursList() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1>🌍 Hac & Umre Turları</h1>
+        <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Globe size={28} color="var(--primary-teal)" /> Hac & Umre Turları</h1>
         <p style={{ color: 'var(--neutral-gray-500)', fontSize: '1.125rem' }}>
           {tours.length} tur bulundu
         </p>
@@ -147,7 +148,7 @@ export default function ToursList() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.1 }}
       >
-        <h3 style={{ marginBottom: '1rem' }}>🔍 Filtrele ve Sırala</h3>
+        <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Search size={20} color="var(--primary-teal)" /> Filtrele ve Sırala</h3>
         <div className="grid grid-3" style={{ gap: '1rem' }}>
           <div>
             <label className="form-label">Min Fiyat</label>
@@ -283,7 +284,7 @@ export default function ToursList() {
                 <div style={{ flex: 1 }}>
                   <h3 style={{ marginBottom: '0.5rem' }}>{tour.title}</h3>
                   <p style={{ color: 'var(--neutral-gray-500)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <span>🏢</span> {tour.operator}
+                    <Building size={16} color="var(--text-secondary)" /> {tour.operator}
                   </p>
                 </div>
                 <motion.input
@@ -314,25 +315,25 @@ export default function ToursList() {
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <span className="badge badge-primary">{tour.duration}</span>
                   {tour.rating && (
-                    <span className="badge badge-gold">⭐ {tour.rating}</span>
+                    <span className="badge badge-gold" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><Star size={12} /> {tour.rating}</span>
                   )}
                 </div>
               </div>
 
               <div style={{ marginBottom: '1rem', lineHeight: 1.7 }}>
                 <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>🏨</span> <strong>Otel:</strong> {tour.hotel}
+                  <Building2 size={16} color="var(--primary-teal)" /> <strong>Otel:</strong> {tour.hotel}
                 </p>
                 <p style={{ fontSize: '0.875rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>✈️</span> <strong>Ulaşım:</strong> {tour.transport}
+                  <Plane size={16} color="var(--primary-teal)" /> <strong>Ulaşım:</strong> {tour.transport}
                 </p>
                 <p style={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span>👤</span> <strong>Rehber:</strong> {tour.guide}
+                  <User size={16} color="var(--primary-teal)" /> <strong>Rehber:</strong> {tour.guide}
                 </p>
               </div>
 
               <div style={{ marginBottom: '1.5rem' }}>
-                <strong style={{ fontSize: '0.875rem', marginBottom: '0.5rem', display: 'block' }}>📦 Hizmetler:</strong>
+                <strong style={{ fontSize: '0.875rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Package size={14} color="var(--primary-teal)" /> Hizmetler:</strong>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   {tour.services.slice(0, 3).map((service, idx) => (
                     <motion.span
@@ -357,7 +358,7 @@ export default function ToursList() {
                   style={{ flex: 1 }}
                   data-testid={`tour-detail-btn-${tour._id}`}
                 >
-                  📋 İncele
+                  <FileText size={16} style={{ marginRight: '0.25rem' }} /> İncele
                 </Link>
                 <a
                   href={`https://wa.me/905551234567?text=Merhaba, ${encodeURIComponent(tour.title)} hakkında bilgi almak istiyorum.`}
@@ -367,7 +368,7 @@ export default function ToursList() {
                   style={{ flex: 1 }}
                   data-testid={`tour-whatsapp-btn-${tour._id}`}
                 >
-                  💬 Rezerve Et
+                  <MessageCircle size={16} style={{ marginRight: '0.25rem' }} /> Rezerve Et
                 </a>
               </div>
             </motion.div>
@@ -382,7 +383,7 @@ export default function ToursList() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🔍</div>
+          <div style={{ marginBottom: '1rem' }}><Search size={64} color="var(--text-muted)" /></div>
           <h3 style={{ marginBottom: '1rem' }}>Hiç tur bulunamadı</h3>
           <p style={{ color: 'var(--neutral-gray-500)', marginBottom: '1.5rem' }}>
             Lütfen filtreleri değiştirin veya daha sonra tekrar deneyin.
