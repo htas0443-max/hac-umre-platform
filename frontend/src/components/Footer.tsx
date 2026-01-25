@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Phone, MessageCircle, Mail, CheckCircle, FileText, Shield, HelpCircle, HeadphonesIcon, Lock } from 'lucide-react';
+import { Mail, CheckCircle, FileText, Shield, HelpCircle, HeadphonesIcon, Lock } from 'lucide-react';
 
 const Footer = memo(function Footer() {
   return (
@@ -37,26 +37,8 @@ const Footer = memo(function Footer() {
 
           {/* Contact Info */}
           <div>
-            <h3 style={{ fontSize: '1rem', marginBottom: '1rem', opacity: 0.9, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Phone size={16} /> İletişim</h3>
+            <h3 style={{ fontSize: '1rem', marginBottom: '1rem', opacity: 0.9, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Mail size={16} /> İletişim</h3>
             <div style={{ fontSize: '0.875rem', lineHeight: 2 }}>
-              <p>
-                <a
-                  href="tel:+905551234567"
-                  style={{ color: 'white', textDecoration: 'none' }}
-                >
-                  <Phone size={14} style={{ marginRight: '0.25rem' }} /> +90 555 123 45 67
-                </a>
-              </p>
-              <p>
-                <a
-                  href="https://wa.me/905551234567"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ color: '#25D366', textDecoration: 'none', fontWeight: 500 }}
-                >
-                  <MessageCircle size={14} style={{ marginRight: '0.25rem' }} /> WhatsApp ile Ulaşın
-                </a>
-              </p>
               <p>
                 <a
                   href="mailto:info@hacveumreturlari.com"
