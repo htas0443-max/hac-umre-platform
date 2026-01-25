@@ -1,28 +1,21 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CreditCard, Calendar, Wrench, Ticket, FileText, HelpCircle, Ticket as TicketIcon, BookOpen, MessageCircle, FileText as FileList, Search, CheckCircle, Clock, Send, ChevronRight, ChevronDown } from 'lucide-react';
+import { Wrench, FileText, HelpCircle, Ticket as TicketIcon, BookOpen, MessageCircle, FileText as FileList, Search, CheckCircle, Clock, Send, ChevronRight, ChevronDown } from 'lucide-react';
 import { ticketsApi } from '../api';
 import { useAuth } from '../AuthContext';
 
 const CATEGORIES = [
-    { id: 'payment', label: 'Ödeme & Fatura', IconComponent: CreditCard },
-    { id: 'reservation', label: 'Rezervasyon', IconComponent: Calendar },
     { id: 'technical', label: 'Teknik Sorun', IconComponent: Wrench },
-    { id: 'tour', label: 'Tur Bilgisi', IconComponent: Ticket },
-    { id: 'complaint', label: 'Şikayet & Öneri', IconComponent: FileText },
-    { id: 'general', label: 'Genel Soru', IconComponent: HelpCircle },
+    { id: 'account', label: 'Hesap İşlemleri', IconComponent: HelpCircle },
+    { id: 'general', label: 'Genel Soru', IconComponent: FileText },
 ];
 
 const FAQ = [
-    { q: 'Rezervasyonumu nasıl iptal ederim?', a: 'Rezervasyon iptali için operatör ile iletişime geçin veya destek talebi oluşturun. İptal koşulları tur sözleşmesinde belirtilmiştir.' },
-    { q: 'Ödeme yöntemleri nelerdir?', a: 'Kredi kartı, havale/EFT ve kapıda ödeme seçenekleri mevcuttur. Taksit seçenekleri için bankanızla iletişime geçin.' },
-    { q: 'Vize işlemleri için ne gerekli?', a: 'Pasaport (min 6 ay geçerli), biyometrik fotoğraf ve başvuru formu gereklidir. Detaylar tur bilgisinde yer alır.' },
-    { q: 'Fatura nasıl alırım?', a: 'Ödeme sonrası faturanız e-posta adresinize gönderilir. Kurumsal fatura için rezervasyon sırasında şirket bilgilerinizi girin.' },
-    { q: 'Tur tarihlerinde değişiklik yapabilir miyim?', a: 'Tur başlangıcından en az 15 gün önce değişiklik talebi yapabilirsiniz. Operatörün onayı ve müsaitlik durumuna bağlıdır.' },
-    { q: 'Uçuş bilgilerimi nereden görebilirim?', a: 'Uçuş bilgileriniz rezervasyon onayından sonra e-posta ile gönderilir ve hesabınızdan da görüntüleyebilirsiniz.' },
-    { q: 'Sağlık şartları nelerdir?', a: 'Meningokok aşısı zorunludur. Kronik hastalığı olanların doktor raporu getirmesi önerilir.' },
-    { q: 'Çocuklar için indirim var mı?', a: '2-12 yaş arası çocuklar için özel fiyatlandırma uygulanır. 2 yaş altı bebekler için ücret alınmaz (koltuk hariç).' },
+    {
+        q: 'Tur ile ilgili işlemler kim tarafından yapılır?',
+        a: 'Rezervasyon, ödeme, iptal, vize, uçuş, sağlık şartları ve fatura işlemleri platform tarafından değil, ilanı yayınlayan firma tarafından yürütülür. Platform, firmalar ile kullanıcıları buluşturan bir ilan platformudur. Detaylı ve güncel bilgi için ilgili firma ile doğrudan iletişime geçmeniz gerekir.'
+    },
 ];
 
 export default function SupportPage() {
@@ -103,6 +96,14 @@ export default function SupportPage() {
                 <p style={{ color: 'var(--text-secondary)' }}>
                     Size nasıl yardımcı olabiliriz?
                 </p>
+                <p style={{
+                    color: 'var(--text-secondary)',
+                    fontSize: '0.875rem',
+                    marginTop: '0.5rem',
+                    fontStyle: 'italic'
+                }}>
+                    Başvurular sırayla incelenir. Ek işlem yapmanıza gerek yoktur.
+                </p>
             </div>
 
             {/* Quick Links */}
@@ -144,7 +145,7 @@ export default function SupportPage() {
 
             {/* FAQ Accordion */}
             <div className="card" style={{ marginBottom: '2rem' }}>
-                <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Search size={20} color="var(--primary-teal)" /> Sık Sorulan Sorular</h3>
+                <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Search size={20} color="var(--primary-teal)" /> Platform Hakkında</h3>
                 {FAQ.map((item, index) => (
                     <div key={index} style={{ borderBottom: index < FAQ.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
                         <button
@@ -180,15 +181,17 @@ export default function SupportPage() {
                     </div>
                 ))}
 
-                {/* Trust FAQ Link */}
+                {/* Platform Role Guidance */}
                 <div style={{
                     marginTop: '1.5rem',
                     padding: '1rem',
                     background: 'rgba(13, 148, 136, 0.1)',
                     borderRadius: '8px',
-                    textAlign: 'center'
                 }}>
-                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                    <p style={{ margin: 0, color: 'var(--text-primary)', fontSize: '0.9rem', fontWeight: 500, marginBottom: '0.5rem' }}>
+                        📌 Tur detayları ve işlemler için ilgili firma ile iletişime geçmenizi öneririz.
+                    </p>
+                    <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                         Firmaların ve ilanların nasıl doğrulandığını merak ediyorsanız,{' '}
                         <Link to="/trust-faq" style={{ color: 'var(--primary-teal)', fontWeight: 500 }}>
                             Güven ve Doğrulama SSS

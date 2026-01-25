@@ -90,7 +90,7 @@ const Footer = memo(function Footer() {
               textDecoration: 'none',
               display: 'none'
             }}>
-              Güven ve Doğrulama hakkında →
+              Güven ve Doğrulama Sürecini İncele →
             </Link>
           </div>
         </div>

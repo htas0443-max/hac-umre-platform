@@ -1,17 +1,19 @@
-# Tüm arama motorlarının siteyi indekslemesini engelle
-# Bu dosyayı sitenin tekrar arama motorlarında görünmesini istediğinizde silin veya güncelleyin
+# Hac & Umre Platformu - robots.txt
+# Arama motorlarına izin ver
 
 User-agent: *
-Disallow: /
+Allow: /
+Disallow: /admin/
+Disallow: /operator/
+Disallow: /support/tickets/
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
 
-# Googlebot'u özellikle engelle
-User-agent: Googlebot
-Disallow: /
+# Sitemap konumu
+Sitemap: https://hacveumreturlari.net/sitemap.xml
 
-# Bingbot'u engelle
-User-agent: Bingbot
-Disallow: /
-
-# Yandex'i engelle
-User-agent: Yandex
-Disallow: /
+# Crawl delay (isteğe bağlı - sunucu yükünü azaltır)
+Crawl-delay: 1

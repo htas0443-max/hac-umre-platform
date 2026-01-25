@@ -108,30 +108,10 @@ function AppRoutes() {
               <Route path="/privacy" element={<PrivacyPage />} />
               <Route path="/verification" element={<VerificationPage />} />
               <Route path="/trust-faq" element={<TrustFaqPage />} />
-              <Route
-                path="/tours"
-                element={
-                  <PrivateRoute>
-                    <ToursList />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/tours/:id"
-                element={
-                  <PrivateRoute>
-                    <TourDetail />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/compare"
-                element={
-                  <PrivateRoute>
-                    <Compare />
-                  </PrivateRoute>
-                }
-              />
+              {/* Public Tour Pages - No login required */}
+              <Route path="/tours" element={<ToursList />} />
+              <Route path="/tours/:id" element={<TourDetail />} />
+              <Route path="/compare" element={<Compare />} />
               <Route path="/chat" element={<Chat />} />
               <Route
                 path="/operator/dashboard"

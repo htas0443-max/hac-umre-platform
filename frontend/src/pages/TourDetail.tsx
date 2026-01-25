@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Building2, Plane, User, FileText, Star, MapPin, Clock, PlaneTakeoff, PlaneLanding, Phone, MessageCircle, RefreshCw, MessageSquare, Trash2 } from 'lucide-react';
+import { Building2, Plane, User, FileText, Star, MapPin, Clock, PlaneTakeoff, PlaneLanding, Phone, MessageCircle, RefreshCw, MessageSquare, Trash2, ArrowLeft } from 'lucide-react';
 import { toursApi } from '../api';
 import { useAuth } from '../AuthContext';
+import { useSEO } from '../hooks/useSEO';
+import VerifiedBadge from '../components/VerifiedBadge';
+import StickyCTA from '../components/StickyCTA';
 import type { Tour } from '../types';
 
 export default function TourDetail() {
@@ -12,6 +15,15 @@ export default function TourDetail() {
   const [error, setError] = useState('');
   const { user } = useAuth();
   const navigate = useNavigate();
+  const heroRef = useRef<HTMLDivElement>(null);
+
+  // SEO: Dinamik title ve description
+  useSEO({
+    title: tour ? `${tour.title} | ${tour.operator}` : 'Tur Detayı',
+    description: tour
+      ? `${tour.duration} süren ${tour.title}. ${tour.hotel}. ${tour.departure_location || 'Türkiye'}'den hareket. Detaylı bilgi ve iletişim için sayfayı ziyaret edin.`
+      : undefined,
+  });
 
   useEffect(() => {
     if (id) {
@@ -64,8 +76,39 @@ export default function TourDetail() {
 
   return (
     <div className="tour-detail-page" data-testid="tour-detail-page">
-      <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Link to="/tours" className="btn btn-outline btn-small" data-testid="back-to-tours">
+      {/* Mobile Above-the-Fold Hero */}
+      <div className="tour-detail-hero" ref={heroRef}>
+        <Link to="/tours" className="tour-detail-back" data-testid="back-to-tours" aria-label="Turlara geri dön">
+          <ArrowLeft size={20} />
+        </Link>
+
+        <h1 className="tour-detail-hero-title" data-testid="tour-title">
+          {tour.title}
+        </h1>
+
+        <div className="tour-detail-hero-operator">
+          <span className="tour-detail-operator-name">{tour.operator}</span>
+          <VerifiedBadge isVerified={tour.is_verified} />
+        </div>
+
+        <a
+          href={tour.operator_phone
+            ? `https://wa.me/${tour.operator_phone.replace(/\D/g, '')}?text=${encodeURIComponent(`Merhaba, ${tour.title} hakkında bilgi almak istiyorum.`)}`
+            : `https://wa.me/905551234567?text=${encodeURIComponent(`Merhaba, ${tour.title} hakkında bilgi almak istiyorum.`)}`
+          }
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-cta-gold"
+          data-testid="hero-cta-btn"
+        >
+          <MessageCircle size={18} aria-hidden="true" />
+          Firmayla İletişime Geç
+        </a>
+      </div>
+
+      {/* Desktop Navigation Row */}
+      <div className="tour-detail-nav-desktop">
+        <Link to="/tours" className="btn btn-outline btn-small" data-testid="back-to-tours-desktop">
           ← Turlar
         </Link>
         {user?.role === 'admin' && (
@@ -76,8 +119,8 @@ export default function TourDetail() {
       </div>
 
       <div className="card">
-        <div className="card-header">
-          <h1 className="card-title" data-testid="tour-title">{tour.title}</h1>
+        <div className="card-header tour-detail-card-header">
+          <h1 className="card-title tour-detail-desktop-title" data-testid="tour-title-desktop">{tour.title}</h1>
           <p className="card-subtitle">{tour.operator}</p>
         </div>
 
@@ -207,7 +250,7 @@ export default function TourDetail() {
           marginBottom: '1.5rem',
           border: '1px solid #86efac'
         }}>
-          <h3 style={{ marginBottom: '1rem', color: 'var(--primary-teal)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Phone size={20} /> Hemen Rezervasyon Yap</h3>
+          <h3 style={{ marginBottom: '1rem', color: 'var(--primary-teal)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Phone size={20} /> Firma ile İletişime Geç</h3>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <a
               href={`https://wa.me/905551234567?text=Merhaba, ${encodeURIComponent(tour.title)} hakkında bilgi almak istiyorum.`}
@@ -217,7 +260,7 @@ export default function TourDetail() {
               data-testid="whatsapp-btn"
               style={{ flex: 1, minWidth: '200px' }}
             >
-              <MessageCircle size={18} style={{ marginRight: '0.5rem' }} /> WhatsApp ile Rezervasyon
+              <MessageCircle size={18} style={{ marginRight: '0.5rem' }} /> WhatsApp ile İletişim
             </a>
             <a
               href="tel:+905551234567"
@@ -247,6 +290,13 @@ export default function TourDetail() {
           </Link>
         </div>
       </div>
+
+      {/* Sticky CTA for mobile */}
+      <StickyCTA
+        phone={tour.operator_phone}
+        tourTitle={tour.title}
+        heroRef={heroRef}
+      />
     </div>
   );
 }

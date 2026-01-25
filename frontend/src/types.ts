@@ -37,6 +37,9 @@ export interface Tour {
   departure_time?: string;      // Kalkış saati
   arrival_location?: string;    // İniş/varış yeri (örn: Mekke, Medine)
   detailed_description?: string; // Detaylı açıklama (gezilecek yerler, aktiviteler vb.)
+  // Firma doğrulama bilgileri
+  is_verified?: boolean;         // TURSAB belgeli, doğrulanmış firma
+  operator_phone?: string;       // Firma iletişim telefonu
 }
 
 export interface ComparisonResult {

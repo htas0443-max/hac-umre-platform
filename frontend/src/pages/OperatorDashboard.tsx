@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Building, Sparkles, BarChart3, CheckCircle, Clock, Inbox, XCircle, Building2, MapPin, Package, Edit, Eye, Star } from 'lucide-react';
 import { operatorApi } from '../api';
 import { useAuth } from '../AuthContext';
+import { useSEO } from '../hooks/useSEO';
 import type { Tour } from '../types';
 
 export default function OperatorDashboard() {
@@ -12,6 +13,9 @@ export default function OperatorDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
+
+  // SEO: noindex - operatör paneli indexlenmemeli
+  useSEO({ title: 'Operatör Dashboard', noIndex: true });
 
   useEffect(() => {
     loadData();
@@ -153,6 +157,16 @@ export default function OperatorDashboard() {
               {stats.pending_tours}
             </motion.h3>
             <p style={{ color: 'var(--neutral-gray-700)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Clock size={18} color="#D97706" /> Onay Bekliyor</p>
+            {stats.pending_tours > 0 && (
+              <p style={{
+                fontSize: '0.75rem',
+                color: 'var(--neutral-gray-600)',
+                marginTop: '0.5rem',
+                fontStyle: 'italic'
+              }}>
+                Başvurunuz inceleme sırasında. Sonuç e-posta ile bildirilecektir.
+              </p>
+            )}
           </motion.div>
         </motion.div>
       )}

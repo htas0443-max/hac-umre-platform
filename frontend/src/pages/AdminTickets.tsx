@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Ticket, Inbox } from 'lucide-react';
 import { ticketsApi } from '../api';
+import { useSEO } from '../hooks/useSEO';
 import type { Ticket as TicketType } from '../types';
 import StatusBadge from '../components/StatusBadge';
 import Breadcrumb from '../components/Breadcrumb';
@@ -37,6 +38,9 @@ export default function AdminTickets() {
     const [activeTab, setActiveTab] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [stats, setStats] = useState({ open: 0, pending: 0, resolved: 0, total: 0 });
+
+    // SEO: noindex - admin ticket listesi indexlenmemeli
+    useSEO({ title: 'Destek Talepleri', noIndex: true });
 
     useEffect(() => {
         loadTickets();

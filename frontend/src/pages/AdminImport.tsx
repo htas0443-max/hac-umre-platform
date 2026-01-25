@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { importApi } from '../api';
+import { useSEO } from '../hooks/useSEO';
 
 export default function AdminImport() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState('');
+
+  // SEO: noindex - admin import sayfası indexlenmemeli
+  useSEO({ title: 'CSV Import', noIndex: true });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -97,8 +101,8 @@ export default function AdminImport() {
             </p>
           )}
         </div>
-        <button 
-          onClick={handleUpload} 
+        <button
+          onClick={handleUpload}
           className="btn btn-primary"
           disabled={!file || loading}
           data-testid="upload-csv-btn"
@@ -111,7 +115,7 @@ export default function AdminImport() {
       <div className="card" style={{ marginTop: '2rem' }}>
         <h3 style={{ marginBottom: '1rem' }}>Örnek CSV</h3>
         <pre style={{ background: 'var(--neutral-beige)', padding: '1rem', borderRadius: '4px', fontSize: '0.75rem', overflowX: 'auto' }}>
-{`title,operator,price,currency,duration,hotel,visa,services,transport,guide
+          {`title,operator,price,currency,duration,hotel,visa,services,transport,guide
 Ekonomik Umre,ABC Turizm,12000,TRY,7 gün,Makkah Hotel 3*,Dahil,Ulaşım,Rehber,Havaalanı transferi,Türk Hava Yolları,Türkçe rehber
 VIP Hac,XYZ Organizasyon,8500,USD,15 gün,Hilton 5*,Dahil,Ulaşım,VIP transfer,Yemek,Business class,Uzman rehber
 Ramazan Umresi,DEF Seyahat,2200,EUR,10 gün,Intercontinental 4*,Dahil,Ulaşım,Transfer,Rehber,Direkt uçuş,Deneyimli rehber`}

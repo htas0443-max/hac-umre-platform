@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Mail, Lock, Eye, EyeOff, Sparkles, Clock, PartyPopper, Shield, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../AuthContext';
+import { useSEO } from '../hooks/useSEO';
 import PasswordStrength from '../components/PasswordStrength';
 
 export default function Register() {
@@ -16,6 +17,9 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  // SEO: noindex - kayıt sayfası indexlenmemeli
+  useSEO({ title: 'Kayıt Ol', noIndex: true });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

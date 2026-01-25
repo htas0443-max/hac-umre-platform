@@ -6,24 +6,8 @@ import PageMeta from '../components/PageMeta';
 
 const TRUST_FAQ = [
     {
-        q: 'Firmalar gerçekten kontrol ediliyor mu?',
-        a: 'Evet. Her firma, ilan yayınlamadan önce ekibimiz tarafından belge kontrolünden geçirilir. Sadece uygun bulunan firmalar platforma kabul edilir.'
-    },
-    {
-        q: 'Her başvuran firma ilan verebilir mi?',
-        a: 'Hayır. Belgelerini eksiksiz ve doğru şekilde yükleyen firmalar değerlendirilir. Uygun bulunmayanlar reddedilir.'
-    },
-    {
-        q: 'Belgeleri neden kullanıcılar göremiyor?',
-        a: 'Belge detayları hassas bilgilerdir. Bunları herkese açık tutmak, sahteciliği kolaylaştırabilir. Bu nedenle kontroller arka planda yapılır ve sadece sonuç paylaşılır.'
-    },
-    {
-        q: 'Sahte veya sorunlu bir ilan olursa ne yapılıyor?',
-        a: 'Şüpheli ilanlar incelemeye alınır. Sorun tespit edilirse ilan kaldırılır ve firma askıya alınabilir. Kullanıcılar dilerlerse bize ulaşarak bildirimde bulunabilir.'
-    },
-    {
-        q: 'Platform ücretsizse bu kontroller neden yapılıyor?',
-        a: 'Amacımız güvenilir bir ortam sunmak. Kullanıcıların tur ararken karşılaştıkları firmalara güven duyması bizim için önemli. Bu nedenle belge kontrolü temel bir adım olarak uygulanıyor.'
+        q: 'Tur ile ilgili işlemler kim tarafından yapılır?',
+        a: 'Rezervasyon, ödeme, iptal, vize, uçuş, sağlık şartları ve fatura işlemleri platform tarafından değil, ilanı yayınlayan firma tarafından yürütülür. Platform, firmalar ile kullanıcıları buluşturan bir ilan platformudur. Detaylı ve güncel bilgi için ilgili firma ile doğrudan iletişime geçmeniz gerekir.'
     },
 ];
 
@@ -72,7 +56,7 @@ export default function TrustFaqPage() {
                                 Güven ve Doğrulama
                             </h1>
                             <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                                Sık Sorulan Sorular
+                                Platform Hakkında
                             </p>
                         </div>
                     </div>

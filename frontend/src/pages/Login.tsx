@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Mail, Eye, EyeOff, Key, AlertTriangle, Clock, Rocket, Shield } from 'lucide-react';
 import { useAuth } from '../AuthContext';
+import { useSEO } from '../hooks/useSEO';
 
 // Login attempt tracking
 const LOCKOUT_KEY = 'login_lockout';
@@ -40,6 +41,9 @@ export default function Login() {
   const [attemptWarning, setAttemptWarning] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  // SEO: noindex - giriş sayfası indexlenmemeli
+  useSEO({ title: 'Giriş Yap', noIndex: true });
 
   // Check lockout status on mount and periodically
   useEffect(() => {

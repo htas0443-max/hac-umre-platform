@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { XCircle, User, Calendar, MessageCircle, Mail, Shield, Clock, Send } from 'lucide-react';
 import { ticketsApi } from '../api';
+import { useSEO } from '../hooks/useSEO';
 import type { Ticket, TicketMessage } from '../types';
 import Breadcrumb from '../components/Breadcrumb';
 
@@ -30,6 +31,9 @@ export default function AdminTicketDetail() {
     const [replyText, setReplyText] = useState('');
     const [sending, setSending] = useState(false);
     const [updatingStatus, setUpdatingStatus] = useState(false);
+
+    // SEO: noindex - admin ticket detay indexlenmemeli
+    useSEO({ title: `Ticket #${id || ''}`, noIndex: true });
 
     useEffect(() => {
         if (id) loadTicket();
@@ -200,13 +204,67 @@ export default function AdminTicketDetail() {
             {/* Reply Form */}
             <div className="card">
                 <h3 style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Mail size={18} /> Yanıt Yaz</h3>
+
+                {/* Template Buttons */}
+                <div style={{ marginBottom: '1rem' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                        📋 Hızlı Şablonlar:
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                        <button
+                            type="button"
+                            className="btn btn-outline"
+                            style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
+                            onClick={() => setReplyText(
+                                'Platformumuz, tur firmaları ile kullanıcıları buluşturan bir ilan platformudur.\n\n' +
+                                'Rezervasyon, ödeme, iptal, vize, uçuş, sağlık şartları ve fatura işlemleri platform tarafından değil, ilgili tur firması tarafından yürütülmektedir.\n\n' +
+                                'Detaylı ve güncel bilgi için lütfen ilan sayfasındaki firma ile doğrudan iletişime geçiniz.'
+                            )}
+                        >
+                            🏢 Platform Rolü
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-outline"
+                            style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
+                            onClick={() => setReplyText(
+                                'Platformumuz, tur firmaları ile kullanıcıları buluşturan bir ilan platformudur.\n\n' +
+                                'Rezervasyon, ödeme, iptal, vize, uçuş, sağlık şartları ve fatura işlemleri platform tarafından değil, ilgili tur firması tarafından yürütülmektedir.\n\n' +
+                                'Detaylı ve güncel bilgi için lütfen ilan sayfasındaki firma ile doğrudan iletişime geçiniz.\n\n' +
+                                'Firmaların doğrulama süreci hakkında bilgi almak için Güven ve Doğrulama sayfamızı inceleyebilirsiniz.'
+                            )}
+                        >
+                            🛡️ Platform + Güven
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-outline"
+                            style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem' }}
+                            onClick={() => setReplyText(prev =>
+                                prev + (prev ? '\n\n' : '') +
+                                'Firmaların doğrulama süreci hakkında bilgi almak için Güven ve Doğrulama sayfamızı inceleyebilirsiniz.'
+                            )}
+                        >
+                            ➕ Güven Linki Ekle
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-outline"
+                            style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem', color: '#EF4444', borderColor: '#EF4444' }}
+                            onClick={() => setReplyText('')}
+                        >
+                            🗑️ Temizle
+                        </button>
+                    </div>
+                </div>
+
                 <form onSubmit={handleReply}>
                     <textarea
                         className="form-input"
                         value={replyText}
                         onChange={(e) => setReplyText(e.target.value)}
                         placeholder="Yanıtınızı yazın..."
-                        rows={4}
+                        rows={6}
                         required
                     />
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, Shield, Mail, Eye, EyeOff, Clock, LogIn } from 'lucide-react';
 import { useAuth } from '../AuthContext';
+import { useSEO } from '../hooks/useSEO';
 
 // Admin lockout configuration
 const ADMIN_LOCKOUT_KEY = 'admin_login_lockout';
@@ -24,6 +25,9 @@ export default function AdminLogin() {
     const [lockTimeRemaining, setLockTimeRemaining] = useState(0);
     const { login, user } = useAuth();
     const navigate = useNavigate();
+
+    // SEO: noindex - admin giriş sayfası indexlenmemeli
+    useSEO({ title: 'Admin Girişi', noIndex: true });
 
     // Check lockout status on mount
     useEffect(() => {

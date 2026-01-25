@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Ana Sayfa -->
+  <url>
+    <loc>https://hacveumreturlari.net/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- Tur Listesi -->
+  <url>
+    <loc>https://hacveumreturlari.net/tours</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <!-- Karşılaştırma -->
+  <url>
+    <loc>https://hacveumreturlari.net/compare</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- AI Chat -->
+  <url>
+    <loc>https://hacveumreturlari.net/chat</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Destek -->
+  <url>
+    <loc>https://hacveumreturlari.net/support</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- Güven ve Doğrulama -->
+  <url>
+    <loc>https://hacveumreturlari.net/trust-faq</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- Doğrulama Süreci -->
+  <url>
+    <loc>https://hacveumreturlari.net/verification</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- Kullanım Koşulları -->
+  <url>
+    <loc>https://hacveumreturlari.net/terms</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+  <!-- Gizlilik Politikası -->
+  <url>
+    <loc>https://hacveumreturlari.net/privacy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+  <!-- Operatör Kayıt -->
+  <url>
+    <loc>https://hacveumreturlari.net/operator/register</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+</urlset>

@@ -3,12 +3,16 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Phone, PlaneTakeoff, PlaneLanding, FileText, Building2, FileCheck, Check } from 'lucide-react';
 import { operatorApi, toursApi } from '../api';
 import { useAuth } from '../AuthContext';
+import { useSEO } from '../hooks/useSEO';
 
 export default function OperatorTourForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const isEdit = Boolean(id);
+
+  // SEO: noindex - ilan formu indexlenmemeli
+  useSEO({ title: isEdit ? 'Tur Düzenle' : 'Yeni İlan', noIndex: true });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -504,7 +508,18 @@ export default function OperatorTourForm() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+        {/* Değerlendirme Bilgisi */}
+        <p style={{
+          marginTop: '1.5rem',
+          fontSize: '0.875rem',
+          color: 'var(--neutral-gray-500)',
+          textAlign: 'center',
+          fontStyle: 'italic'
+        }}>
+          İlanlar, firma bilgileri ve geçmiş başvurulara göre değerlendirilir.
+        </p>
+
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
           <button
             type="button"
             onClick={() => navigate('/operator/dashboard')}

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BarChart3, Clock, CheckCircle } from 'lucide-react';
 import { toursApi } from '../api';
+import { useSEO } from '../hooks/useSEO';
 import Breadcrumb from '../components/Breadcrumb';
 
 interface DashboardStats {
@@ -21,6 +22,9 @@ export default function AdminDashboard() {
     });
     const [loading, setLoading] = useState(true);
     const [recentPending, setRecentPending] = useState<any[]>([]);
+
+    // SEO: noindex - admin paneli indexlenmemeli
+    useSEO({ title: 'Admin Dashboard', noIndex: true });
 
     useEffect(() => {
         loadDashboardData();

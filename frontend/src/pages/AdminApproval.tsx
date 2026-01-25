@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Crown, Search, CheckSquare, CheckCircle, XCircle, Clock, Building2, MapPin, Inbox } from 'lucide-react';
 import { adminApi, toursApi } from '../api';
+import { useSEO } from '../hooks/useSEO';
 import StatusBadge from '../components/StatusBadge';
 import Breadcrumb from '../components/Breadcrumb';
 import type { Tour } from '../types';
@@ -17,6 +18,9 @@ export default function AdminApproval() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTours, setSelectedTours] = useState<Set<string>>(new Set());
   const [bulkProcessing, setBulkProcessing] = useState(false);
+
+  // SEO: noindex - admin onay ekranı indexlenmemeli
+  useSEO({ title: 'Tur Onay Yönetimi', noIndex: true });
 
   useEffect(() => {
     loadPendingTours();
