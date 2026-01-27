@@ -3,9 +3,16 @@ import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RefreshCw, Brain, Zap, Bot, Building2, Building, Package, Sparkles, BarChart3, Target, Trophy, Search, Globe } from 'lucide-react';
 import { toursApi, aiApi } from '../api';
+import { useSEO } from '../hooks/useSEO';
 import type { Tour, ComparisonResult } from '../types';
 
 export default function Compare() {
+  useSEO({
+    title: 'Hac ve Umre Turları Karşılaştırma | Fiyat ve Hizmetler',
+    description: 'Hac ve Umre turlarını fiyat, tarih ve hizmetlere göre karşılaştırın. Güvenilir firmaların tekliflerini yan yana inceleyin.',
+    canonical: 'https://hacveumreturlari.net/compare',
+  });
+
   const [searchParams] = useSearchParams();
   const [tours, setTours] = useState<Tour[]>([]);
   const [comparison, setComparison] = useState<ComparisonResult | null>(null);

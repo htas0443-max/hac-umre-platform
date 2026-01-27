@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, Pin, Brain, User, Bot, Mic, Square, Volume2, Pause, Bell, BellOff, Send, RefreshCw } from 'lucide-react';
 import { toursApi, aiApi } from '../api';
+import { useSEO } from '../hooks/useSEO';
 import type { Tour, ChatMessage } from '../types';
 
 // Web Speech API types declaration
@@ -14,6 +15,12 @@ declare global {
 }
 
 export default function Chat() {
+  useSEO({
+    title: 'Hac ve Umre Rehberi | Sık Sorulan Sorular ve Bilgiler',
+    description: 'Hac ve Umre hakkında merak edilen soruların cevaplarını bulun. Vize, sağlık şartları, ibadet süreci ve seyahat bilgileri için rehber.',
+    canonical: 'https://hacveumreturlari.net/chat',
+  });
+
   const [searchParams] = useSearchParams();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');

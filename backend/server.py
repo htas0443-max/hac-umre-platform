@@ -1082,45 +1082,87 @@ async def check_feature_access(user: dict, feature_name: str):
 # License Upload Routes
 @app.post("/api/operator/license/upload")
 async def upload_license(file: UploadFile = File(...), license_number: str = "", user: dict = Depends(require_operator)):
-    """Operator devlet onaylı izin belgesi yükler"""
+    """Operator devlet onaylı izin belgesi yükler - Enhanced Security"""
+    from security import validate_file_upload
+    
     try:
-        # Dosya tipi kontrolü
-        allowed_types = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png']
-        if file.content_type not in allowed_types:
-            raise HTTPException(status_code=400, detail="Sadece PDF veya resim dosyaları yüklenebilir")
-        
-        # Dosya boyutu kontrolü (5MB)
+        # Dosya içeriğini oku
         contents = await file.read()
-        if len(contents) > 5 * 1024 * 1024:
-            raise HTTPException(status_code=400, detail="Dosya boyutu 5MB'dan küçük olmalıdır")
         
-        # Supabase Storage'a yükle
-        file_path = f"{user['id']}/license_{user['id']}.{file.filename.split('.')[-1]}"
-        
-        storage_response = supabase.storage.from_('license-documents').upload(
-            file_path,
-            contents,
-            {
-                'content-type': file.content_type,
-                'upsert': True  # Var olan dosyayı güncelle
-            }
+        # SEC-003 & SEC-004: Comprehensive file validation with magic bytes and antivirus
+        validate_file_upload(
+            filename=file.filename,
+            content_type=file.content_type,
+            file_size=len(contents),
+            file_content=contents,  # NEW: Pass content for magic bytes check
+            max_size=5 * 1024 * 1024
         )
         
-        # Public URL al
-        public_url = supabase.storage.from_('license-documents').get_public_url(file_path)
+        # Private bucket'a yükle (public bucket yerine)
+        # NOTE: Requires 'license-documents-private' bucket to be created in Supabase
+        bucket_name = 'license-documents-private'
+        file_path = f"{user['id']}/license_{user['id']}.{file.filename.split('.')[-1]}"
+        
+        try:
+            storage_response = supabase.storage.from_(bucket_name).upload(
+                file_path,
+                contents,
+                {
+                    'content-type': file.content_type,
+                    'upsert': True  # Var olan dosyayı güncelle
+                }
+            )
+        except Exception as storage_error:
+            # Fallback to public bucket if private doesn't exist
+            log_security_event("PRIVATE_BUCKET_FALLBACK", {
+                "error": str(storage_error),
+                "user_id": user['id']
+            }, "WARN")
+            bucket_name = 'license-documents'
+            storage_response = supabase.storage.from_(bucket_name).upload(
+                file_path,
+                contents,
+                {
+                    'content-type': file.content_type,
+                    'upsert': True
+                }
+            )
+        
+        # Signed URL oluştur (private bucket için) veya public URL (fallback için)
+        if bucket_name == 'license-documents-private':
+            # Signed URL - 1 saat geçerli (admin incelemesi için)
+            signed_url_response = supabase.storage.from_(bucket_name).create_signed_url(
+                file_path,
+                expires_in=3600  # 1 saat
+            )
+            document_url = signed_url_response.get('signedURL', '')
+        else:
+            # Public URL (fallback)
+            document_url = supabase.storage.from_(bucket_name).get_public_url(file_path)
         
         # Users tablosunu güncelle
         supabase.table("users").update({
-            "license_document_url": public_url,
+            "license_document_url": document_url,
+            "license_document_path": file_path,  # Store path for future signed URL generation
+            "license_bucket": bucket_name,  # Track which bucket is used
             "license_number": license_number,
             "license_verified": False  # Admin onayı bekleyecek
         }).eq("id", user["id"]).execute()
         
+        log_security_event("LICENSE_UPLOAD_SUCCESS", {
+            "user_id": user["id"],
+            "bucket": bucket_name,
+            "file_size": len(contents)
+        })
+        
         return {
             "message": "İzin belgesi başarıyla yüklendi",
-            "license_url": public_url,
-            "status": "pending_verification"
+            "license_url": document_url,
+            "status": "pending_verification",
+            "bucket_type": "private" if bucket_name == 'license-documents-private' else "public"
         }
+    except HTTPException:
+        raise
     except Exception as e:
         log_security_event("FILE_UPLOAD_ERROR", {"error": str(e)}, "ERROR")
         raise HTTPException(status_code=500, detail="Dosya yüklenirken bir hata oluştu")

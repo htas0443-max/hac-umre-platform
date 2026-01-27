@@ -364,8 +364,76 @@ def log_security_event(event_type: str, details: Dict[str, Any], severity: str =
 
 
 # File upload validation
-def validate_file_upload(filename: str, content_type: str, file_size: int, max_size: int = 5 * 1024 * 1024) -> bool:
-    """Validate file uploads"""
+MAGIC_BYTES = {
+    'pdf': b'%PDF',
+    'jpeg': b'\xff\xd8\xff',
+    'jpg': b'\xff\xd8\xff',
+    'png': b'\x89PNG\r\n\x1a\n',
+}
+
+def validate_magic_bytes(file_content: bytes, extension: str) -> bool:
+    """
+    SEC-003: Validate file content matches its extension using magic bytes.
+    Prevents malicious file uploads disguised with wrong extensions.
+    """
+    ext = extension.lower().lstrip('.')
+    
+    if ext not in MAGIC_BYTES:
+        return True  # Unknown extension, skip check
+    
+    expected_magic = MAGIC_BYTES[ext]
+    return file_content[:len(expected_magic)] == expected_magic
+
+def scan_file_for_viruses(file_content: bytes, filename: str) -> tuple[bool, str]:
+    """
+    SEC-004: Optional ClamAV antivirus scanning.
+    Returns (is_safe, message).
+    Gracefully degrades if ClamAV is not available.
+    """
+    import os
+    
+    # Check if ClamAV is enabled
+    clamav_enabled = os.getenv("CLAMAV_ENABLED", "false").lower() == "true"
+    if not clamav_enabled:
+        return True, "Antivirus scanning disabled"
+    
+    try:
+        import clamd
+        
+        clamav_host = os.getenv("CLAMAV_HOST", "localhost")
+        clamav_port = int(os.getenv("CLAMAV_PORT", "3310"))
+        
+        cd = clamd.ClamdNetworkSocket(host=clamav_host, port=clamav_port, timeout=30)
+        
+        # Scan the file content
+        result = cd.instream(file_content)
+        
+        if result and 'stream' in result:
+            status, virus_name = result['stream']
+            if status == 'FOUND':
+                log_security_event("VIRUS_DETECTED", {
+                    "filename": filename,
+                    "virus": virus_name
+                }, "CRITICAL")
+                return False, f"Virüs tespit edildi: {virus_name}"
+        
+        return True, "Dosya temiz"
+    
+    except ImportError:
+        # clamd not installed
+        return True, "ClamAV modülü yüklü değil"
+    except Exception as e:
+        # ClamAV not reachable - log but allow (graceful degradation)
+        log_security_event("CLAMAV_ERROR", {"error": str(e)}, "WARN")
+        return True, "Antivirus taraması yapılamadı (servis erişilemez)"
+
+def validate_file_upload(filename: str, content_type: str, file_size: int, 
+                         file_content: bytes = None, max_size: int = 5 * 1024 * 1024) -> bool:
+    """
+    Comprehensive file upload validation with magic bytes and antivirus.
+    SEC-003: Magic bytes validation
+    SEC-004: ClamAV antivirus scanning (optional)
+    """
     # Size check
     if file_size > max_size:
         raise HTTPException(status_code=400, detail=f"Dosya boyutu {max_size / (1024*1024)}MB'dan küçük olmalıdır")
@@ -384,6 +452,21 @@ def validate_file_upload(filename: str, content_type: str, file_size: int, max_s
     # Filename sanitization (prevent directory traversal)
     if '..' in filename or '/' in filename or '\\' in filename:
         raise HTTPException(status_code=400, detail="Geçersiz dosya adı")
+    
+    # SEC-003: Magic bytes validation
+    if file_content:
+        if not validate_magic_bytes(file_content, ext):
+            log_security_event("MAGIC_BYTES_MISMATCH", {
+                "filename": filename,
+                "claimed_extension": ext,
+                "content_type": content_type
+            }, "CRITICAL")
+            raise HTTPException(status_code=400, detail="Dosya içeriği uzantısıyla uyuşmuyor. Lütfen geçerli bir dosya yükleyin.")
+        
+        # SEC-004: Antivirus scan
+        is_safe, scan_message = scan_file_for_viruses(file_content, filename)
+        if not is_safe:
+            raise HTTPException(status_code=400, detail=scan_message)
     
     return True
 

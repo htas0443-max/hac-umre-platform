@@ -3,9 +3,16 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, Search, Building, Building2, Plane, User, Package, Star, FileText, MessageCircle } from 'lucide-react';
 import { toursApi } from '../api';
+import { useSEO } from '../hooks/useSEO';
 import type { Tour } from '../types';
 
 export default function ToursList() {
+  useSEO({
+    title: 'Hac ve Umre Turları | Güvenilir Firmalar',
+    description: 'Belge kontrolünden geçmiş güvenilir firmaların Hac ve Umre turlarını karşılaştırın. Güncel fiyatlar, tarih ve detayları inceleyin.',
+    canonical: 'https://hacveumreturlari.net/tours',
+  });
+
   const [tours, setTours] = useState<Tour[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

@@ -4,12 +4,13 @@ interface SEOOptions {
     title: string;
     description?: string;
     noIndex?: boolean;
+    canonical?: string;
 }
 
 const DEFAULT_TITLE = 'Hac & Umre Turları';
 const DEFAULT_DESCRIPTION = 'Türkiye\'nin güvenilir Hac ve Umre tur platformu. Onaylı firmalar, karşılaştırmalı fiyatlar.';
 
-export function useSEO({ title, description, noIndex = false }: SEOOptions) {
+export function useSEO({ title, description, noIndex = false, canonical }: SEOOptions) {
     useEffect(() => {
         // Title
         const fullTitle = title ? `${title} | ${DEFAULT_TITLE}` : DEFAULT_TITLE;
@@ -33,6 +34,19 @@ export function useSEO({ title, description, noIndex = false }: SEOOptions) {
         }
         metaRobots.setAttribute('content', noIndex ? 'noindex, nofollow' : 'index, follow');
 
+        // Canonical URL
+        let linkCanonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+        if (canonical) {
+            if (!linkCanonical) {
+                linkCanonical = document.createElement('link');
+                linkCanonical.setAttribute('rel', 'canonical');
+                document.head.appendChild(linkCanonical);
+            }
+            linkCanonical.setAttribute('href', canonical);
+        } else if (linkCanonical) {
+            linkCanonical.remove();
+        }
+
         // Cleanup: reset to defaults when unmounting
         return () => {
             document.title = DEFAULT_TITLE;
@@ -42,6 +56,9 @@ export function useSEO({ title, description, noIndex = false }: SEOOptions) {
             if (metaRobots) {
                 metaRobots.setAttribute('content', 'index, follow');
             }
+            if (linkCanonical) {
+                linkCanonical.remove();
+            }
         };
-    }, [title, description, noIndex]);
+    }, [title, description, noIndex, canonical]);
 }
