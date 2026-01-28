@@ -87,9 +87,6 @@ const Footer = memo(function Footer() {
           <p style={{ fontSize: '0.875rem', opacity: 0.9 }}>
             © 2026 Hac & Umre Platformu. Tüm hakları saklıdır.
           </p>
-          <p style={{ fontSize: '0.8rem', marginTop: '0.5rem', opacity: 0.7 }}>
-            Geliştiren: <strong style={{ color: 'var(--accent-gold)' }}>Hamza Taş</strong>
-          </p>
           <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '1.5rem' }}>
             <Link to="/terms" style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.8rem', textDecoration: 'none' }}>
               <FileText size={14} style={{ marginRight: '0.25rem' }} /> Kullanım Koşulları

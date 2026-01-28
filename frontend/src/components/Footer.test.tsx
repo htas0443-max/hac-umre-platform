@@ -12,7 +12,6 @@ describe('Footer', () => {
         );
 
         expect(container.textContent).toContain('Hac & Umre Platformu');
-        expect(container.textContent).toContain('Hamza Taş');
     });
 });
 
