@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Globe, RefreshCw, BookOpen, BarChart3, CheckCircle, FolderUp } from 'lucide-react';
+import { Home, Globe, RefreshCw, BookOpen, BarChart3, CheckCircle, FolderUp, Heart } from 'lucide-react';
 import { useAuth } from '../AuthContext';
+import { useFavorites } from '../hooks/useFavorites';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { favoritesCount } = useFavorites();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
@@ -80,12 +82,33 @@ export default function Navbar() {
               <Link to="/chat" className="navbar-link" data-testid="chat-link">Hac Rehberi</Link>
             </>
           )}
+          {/* Favorites link for everyone */}
+          <Link to="/favorites" className="navbar-link" data-testid="favorites-link" style={{ position: 'relative' }}>
+            <Heart size={18} style={{ marginRight: '0.25rem', verticalAlign: 'middle' }} />
+            Favoriler
+            {favoritesCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-4px',
+                right: '-8px',
+                backgroundColor: 'var(--danger)',
+                color: 'white',
+                fontSize: '0.65rem',
+                padding: '2px 6px',
+                borderRadius: '10px',
+                fontWeight: 700
+              }}>{favoritesCount}</span>
+            )}
+          </Link>
         </div>
 
         {/* Desktop Auth Actions */}
         <div className="navbar-actions navbar-desktop">
           {user ? (
             <div className="navbar-user">
+              <Link to="/profile" className="navbar-link" data-testid="profile-link">
+                Profilim
+              </Link>
               <span className="navbar-email" data-testid="user-email">{user.email}</span>
               <button
                 onClick={logout}
@@ -126,6 +149,10 @@ export default function Navbar() {
             <Link to="/tours" className="navbar-mobile-link" role="menuitem" onClick={closeMenu}><Globe size={18} aria-hidden="true" style={{ marginRight: '0.5rem' }} /> Turlar</Link>
             <Link to="/compare" className="navbar-mobile-link" role="menuitem" onClick={closeMenu}><RefreshCw size={18} aria-hidden="true" style={{ marginRight: '0.5rem' }} /> Karşılaştır</Link>
             <Link to="/chat" className="navbar-mobile-link" role="menuitem" onClick={closeMenu}><BookOpen size={18} aria-hidden="true" style={{ marginRight: '0.5rem' }} /> Hac Rehberi</Link>
+            <Link to="/favorites" className="navbar-mobile-link" role="menuitem" onClick={closeMenu}>
+              <Heart size={18} aria-hidden="true" style={{ marginRight: '0.5rem' }} /> Favoriler
+              {favoritesCount > 0 && <span className="badge badge-gold" style={{ marginLeft: '0.5rem', fontSize: '0.7rem' }}>{favoritesCount}</span>}
+            </Link>
 
             {user ? (
               <>

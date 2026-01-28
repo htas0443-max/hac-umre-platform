@@ -1,6 +1,7 @@
 import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import { supabase } from './lib/supabase';
 import { translateError } from './lib/errorTranslations';
+import { favoritesApi } from './api';
 import type { User, AuthContextType } from './types';
 import type { Session } from '@supabase/supabase-js';
 
@@ -96,6 +97,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
           // Fallback to profile load only if metadata missing
           await loadUserProfile(data.user.id);
+        }
+
+        // Sync localStorage favorites to database after login
+        try {
+          const localFavorites = localStorage.getItem('hac_umre_favorites');
+          if (localFavorites) {
+            const tourIds = JSON.parse(localFavorites);
+            if (Array.isArray(tourIds) && tourIds.length > 0) {
+              await favoritesApi.sync(tourIds);
+              localStorage.removeItem('hac_umre_favorites');
+            }
+          }
+        } catch (syncError) {
+          // Sync error should not block login
+          console.error('Favorites sync error:', syncError);
         }
       }
     } catch (error: any) {

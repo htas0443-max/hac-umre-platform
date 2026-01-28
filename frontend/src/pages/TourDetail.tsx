@@ -1,11 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Building2, Plane, User, FileText, Star, MapPin, Clock, PlaneTakeoff, PlaneLanding, Phone, MessageCircle, RefreshCw, MessageSquare, Trash2, ArrowLeft } from 'lucide-react';
+import { Building2, Plane, User, FileText, Star, MapPin, Clock, PlaneTakeoff, PlaneLanding, Phone, MessageCircle, RefreshCw, MessageSquare, Trash2, ArrowLeft, Edit3 } from 'lucide-react';
 import { toursApi } from '../api';
 import { useAuth } from '../AuthContext';
 import { useSEO } from '../hooks/useSEO';
+import { useRecentlyViewed } from '../hooks/useRecentlyViewed';
 import VerifiedBadge from '../components/VerifiedBadge';
 import StickyCTA from '../components/StickyCTA';
+import FavoriteButton from '../components/FavoriteButton';
+import ReviewForm from '../components/ReviewForm';
+import OperatorRating from '../components/OperatorRating';
+import TourShareButtons from '../components/TourShareButtons';
+import { trackFavoriteToContact } from '../lib/analytics';
 import type { Tour } from '../types';
 
 export default function TourDetail() {
@@ -16,6 +22,8 @@ export default function TourDetail() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const heroRef = useRef<HTMLDivElement>(null);
+  const { addToRecentlyViewed } = useRecentlyViewed();
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
   // SEO: Dinamik title ve description
   useSEO({
@@ -30,6 +38,19 @@ export default function TourDetail() {
       loadTour();
     }
   }, [id]);
+
+  // Track recently viewed when tour is loaded
+  useEffect(() => {
+    if (tour) {
+      addToRecentlyViewed({
+        id: tour._id,
+        title: tour.title,
+        operator: tour.operator,
+        price: tour.price,
+        currency: tour.currency
+      });
+    }
+  }, [tour, addToRecentlyViewed]);
 
   const loadTour = async () => {
     try {
@@ -89,6 +110,7 @@ export default function TourDetail() {
         <div className="tour-detail-hero-operator">
           <span className="tour-detail-operator-name">{tour.operator}</span>
           <VerifiedBadge isVerified={tour.is_verified} />
+          <FavoriteButton tourId={tour._id} size={22} source="tour_detail" />
         </div>
 
         <a
@@ -100,6 +122,7 @@ export default function TourDetail() {
           rel="noopener noreferrer"
           className="btn btn-cta-gold"
           data-testid="hero-cta-btn"
+          onClick={() => trackFavoriteToContact(tour._id, 'tour_detail', !!user)}
         >
           <MessageCircle size={18} aria-hidden="true" />
           Firmayla İletişime Geç
@@ -132,6 +155,11 @@ export default function TourDetail() {
             <span className="badge badge-primary">{tour.duration}</span>
             {tour.rating && <span className="badge badge-gold" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><Star size={12} /> {tour.rating}</span>}
             <span className="badge badge-primary">{tour.start_date} - {tour.end_date}</span>
+          </div>
+
+          {/* Share Buttons */}
+          <div style={{ marginTop: '1rem' }}>
+            <TourShareButtons tourId={tour._id} tourTitle={tour.title} source="detail" />
           </div>
         </div>
 
@@ -288,6 +316,38 @@ export default function TourDetail() {
           >
             <MessageSquare size={18} style={{ marginRight: '0.5rem' }} /> AI ile Soru Sor
           </Link>
+        </div>
+
+        {/* Review Section */}
+        <div className="card" style={{ marginTop: '2rem', padding: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <h3 style={{ margin: 0 }}>Firma Değerlendirmesi</h3>
+              <OperatorRating operatorName={tour.operator} />
+            </div>
+            {user && !showReviewForm && (
+              <button
+                onClick={() => setShowReviewForm(true)}
+                className="btn btn-outline btn-small"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+              >
+                <Edit3 size={16} /> Değerlendir
+              </button>
+            )}
+          </div>
+          {showReviewForm && (
+            <ReviewForm
+              operatorName={tour.operator}
+              tourId={typeof tour._id === 'number' ? tour._id : undefined}
+              onSuccess={() => setShowReviewForm(false)}
+              onCancel={() => setShowReviewForm(false)}
+            />
+          )}
+          {!showReviewForm && !user && (
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
+              <Link to="/login">Giriş yaparak</Link> bu firmayı değerlendirebilirsiniz.
+            </p>
+          )}
         </div>
       </div>
 

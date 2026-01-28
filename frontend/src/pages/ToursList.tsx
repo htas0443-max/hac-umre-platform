@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Search, Building, Building2, Plane, User, Package, Star, FileText, MessageCircle } from 'lucide-react';
+import { Globe, Search, Building, Building2, Plane, User, Package, Star, FileText, MessageCircle, Bell } from 'lucide-react';
 import { toursApi } from '../api';
 import { useSEO } from '../hooks/useSEO';
+import FavoriteButton from '../components/FavoriteButton';
+import TourAlertForm from '../components/TourAlertForm';
 import type { Tour } from '../types';
 
 export default function ToursList() {
@@ -25,6 +27,7 @@ export default function ToursList() {
   const [currency, setCurrency] = useState('all');
   const [sortBy, setSortBy] = useState('created_at');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [showAlertForm, setShowAlertForm] = useState(false);
 
   // Debounced filter values
   const [debouncedMinPrice, setDebouncedMinPrice] = useState('');
@@ -130,11 +133,43 @@ export default function ToursList() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Globe size={28} color="var(--primary-teal)" /> Hac & Umre Turları</h1>
-        <p style={{ color: 'var(--neutral-gray-500)', fontSize: '1.125rem' }}>
-          {tours.length} tur bulundu
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Globe size={28} color="var(--primary-teal)" /> Hac & Umre Turları</h1>
+            <p style={{ color: 'var(--neutral-gray-500)', fontSize: '1.125rem' }}>
+              {tours.length} tur bulundu
+            </p>
+          </div>
+          <motion.button
+            onClick={() => setShowAlertForm(!showAlertForm)}
+            className={`btn ${showAlertForm ? 'btn-primary' : 'btn-outline'}`}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            data-testid="tour-alert-toggle-btn"
+          >
+            <Bell size={18} />
+            {showAlertForm ? 'Kapat' : 'Tur Alarmı Kur'}
+          </motion.button>
+        </div>
       </motion.div>
+
+      {/* Tour Alert Form */}
+      <AnimatePresence>
+        {showAlertForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            style={{ marginBottom: '1.5rem', overflow: 'hidden' }}
+          >
+            <TourAlertForm
+              onSuccess={() => setShowAlertForm(false)}
+              onCancel={() => setShowAlertForm(false)}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {error && (
         <motion.div
@@ -303,6 +338,7 @@ export default function ToursList() {
                   data-testid={`tour-checkbox-${tour._id}`}
                   whileTap={{ scale: 0.9 }}
                 />
+                <FavoriteButton tourId={tour._id} size={20} />
               </div>
 
               <div style={{ marginBottom: '1rem' }}>

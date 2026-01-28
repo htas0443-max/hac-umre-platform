@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, Brain, Zap, Bot, Building2, Building, Package, Sparkles, BarChart3, Target, Trophy, Search, Globe } from 'lucide-react';
+import { RefreshCw, Brain, Zap, Bot, Building2, Building, Package, Sparkles, BarChart3, Target, Trophy, Search, Globe, Share2, Check } from 'lucide-react';
 import { toursApi, aiApi } from '../api';
 import { useSEO } from '../hooks/useSEO';
+import { toast } from 'sonner';
 import type { Tour, ComparisonResult } from '../types';
 
 export default function Compare() {
@@ -19,6 +20,7 @@ export default function Compare() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [provider, setProvider] = useState('anthropic');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const tourIds = searchParams.get('tours')?.split(',') || [];
@@ -34,6 +36,42 @@ export default function Compare() {
       setTours(toursData);
     } catch (err: any) {
       setError('Turlar yüklenemedi');
+    }
+  };
+
+  // Generate shareable link
+  const getShareableLink = () => {
+    const tourIds = tours.map(t => t._id).join(',');
+    return `${window.location.origin}/compare?tours=${tourIds}`;
+  };
+
+  // Handle share with native API or clipboard
+  const handleShare = async () => {
+    const shareUrl = getShareableLink();
+    const shareData = {
+      title: 'Hac & Umre Tur Karşılaştırması',
+      text: `${tours.length} tur karşılaştırması - ${tours.map(t => t.title).join(' vs ')}`,
+      url: shareUrl
+    };
+
+    // Try native share API first (mobile)
+    if (navigator.share && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch (err) {
+        // User cancelled or error, fall back to clipboard
+      }
+    }
+
+    // Fallback: copy to clipboard
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      toast.success('🔗 Link kopyalandı!', { duration: 2000 });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error('Link kopyalanamadı');
     }
   };
 
@@ -235,9 +273,22 @@ export default function Compare() {
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
           >
-            <div className="card-header">
+            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
               <h2 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Sparkles size={24} color="var(--accent-gold)" /> AI Karşılaştırma Sonucu</h2>
-              <span className="badge badge-ai" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Bot size={14} /> {comparison.provider}</span>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <motion.button
+                  onClick={handleShare}
+                  className="btn btn-outline btn-small"
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  data-testid="share-comparison-btn"
+                >
+                  {copied ? <Check size={16} color="var(--primary-emerald)" /> : <Share2 size={16} />}
+                  {copied ? 'Kopyalandı' : 'Paylaş'}
+                </motion.button>
+                <span className="badge badge-ai" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}><Bot size={14} /> {comparison.provider}</span>
+              </div>
             </div>
 
             {comparison.summary && (

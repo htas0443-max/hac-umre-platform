@@ -3,6 +3,7 @@ import { useAuth } from '../AuthContext';
 import { motion } from 'framer-motion';
 import { Lock, RefreshCw, MessageSquare, Search, Building, Megaphone, KeyRound, BarChart3, Plus, Sparkles, CheckCircle, FileText, HeadphonesIcon } from 'lucide-react';
 import PageMeta from '../components/PageMeta';
+import RecentlyViewed from '../components/RecentlyViewed';
 
 // Create MotionLink for proper Framer Motion + React Router integration
 const MotionLink = motion(Link);
@@ -179,6 +180,9 @@ export default function Home() {
             <span className="trust-item-text">Destek ekibimiz yanınızda</span>
           </div>
         </motion.div>
+
+        {/* Recently Viewed Tours */}
+        <RecentlyViewed />
 
         {/* Features Section */}
         <motion.section

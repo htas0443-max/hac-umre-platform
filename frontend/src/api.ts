@@ -200,4 +200,131 @@ export const ticketsApi = {
   },
 };
 
+// Favorites API - Niyet göstergesi (Sepet/Rezervasyon DEĞİL)
+export const favoritesApi = {
+  // Kullanıcının favorilerini getir (tur detaylarıyla)
+  getAll: async () => {
+    const response = await api.get('/api/favorites');
+    return response.data;
+  },
+
+  // Favorilere ekle
+  add: async (tourId: number) => {
+    const response = await api.post('/api/favorites', { tour_id: tourId });
+    return response.data;
+  },
+
+  // Favorilerden çıkar
+  remove: async (tourId: number) => {
+    const response = await api.delete(`/api/favorites/${tourId}`);
+    return response.data;
+  },
+
+  // localStorage'dan senkronize et (login sonrası)
+  sync: async (tourIds: number[]) => {
+    const response = await api.post('/api/favorites/sync', { tour_ids: tourIds });
+    return response.data;
+  },
+};
+
+// Price Alerts API - Fiyat düşüşü bildirimi
+export const priceAlertsApi = {
+  // Bildirimleri listele
+  getAll: async () => {
+    const response = await api.get('/api/price-alerts');
+    return response.data;
+  },
+
+  // Bildirim oluştur
+  create: async (tourId: number) => {
+    const response = await api.post('/api/price-alerts', { tour_id: tourId });
+    return response.data;
+  },
+
+  // Bildirimi kaldır
+  remove: async (tourId: number) => {
+    const response = await api.delete(`/api/price-alerts/${tourId}`);
+    return response.data;
+  },
+
+  // Bildirimi aç/kapat
+  toggle: async (tourId: number) => {
+    const response = await api.post(`/api/price-alerts/${tourId}/toggle`);
+    return response.data;
+  },
+};
+
+// Tour Alerts API - Tarih bazlı "bu tarihte tur açılırsa haber ver"
+export const tourAlertsApi = {
+  // Alarm listele
+  getAll: async () => {
+    const response = await api.get('/api/tour-alerts');
+    return response.data;
+  },
+
+  // Alarm oluştur
+  create: async (data: {
+    start_date: string;
+    end_date: string;
+    tour_type?: string;
+    max_price?: number;
+    preferred_operator?: string;
+  }) => {
+    const response = await api.post('/api/tour-alerts', data);
+    return response.data;
+  },
+
+  // Alarm güncelle
+  update: async (alertId: string, data: {
+    start_date?: string;
+    end_date?: string;
+    tour_type?: string;
+    max_price?: number;
+    preferred_operator?: string;
+    is_active?: boolean;
+  }) => {
+    const response = await api.put(`/api/tour-alerts/${alertId}`, data);
+    return response.data;
+  },
+
+  // Alarm sil
+  remove: async (alertId: string) => {
+    const response = await api.delete(`/api/tour-alerts/${alertId}`);
+    return response.data;
+  },
+};
+
+// Reviews API - Firma değerlendirmeleri
+export const reviewsApi = {
+  // Yorum oluştur
+  create: async (data: {
+    operator_name: string;
+    rating: number;
+    title?: string;
+    comment?: string;
+    tour_id?: number;
+  }) => {
+    const response = await api.post('/api/reviews', data);
+    return response.data;
+  },
+
+  // Operatör yorumlarını getir (public)
+  getByOperator: async (operatorName: string) => {
+    const response = await api.get(`/api/reviews/operator/${encodeURIComponent(operatorName)}`);
+    return response.data;
+  },
+
+  // Kendi yorumlarımı getir
+  getMy: async () => {
+    const response = await api.get('/api/reviews/my');
+    return response.data;
+  },
+
+  // Yorum sil
+  remove: async (reviewId: string) => {
+    const response = await api.delete(`/api/reviews/${reviewId}`);
+    return response.data;
+  },
+};
+
 export default api;
