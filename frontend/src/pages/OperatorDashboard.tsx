@@ -5,6 +5,7 @@ import { Building, Sparkles, BarChart3, CheckCircle, Clock, Inbox, XCircle, Buil
 import { operatorApi } from '../api';
 import { useAuth } from '../AuthContext';
 import { useSEO } from '../hooks/useSEO';
+import OperatorReviews from '../components/OperatorReviews';
 import type { Tour } from '../types';
 
 export default function OperatorDashboard() {
@@ -309,6 +310,11 @@ export default function OperatorDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Operator Reviews Section */}
+      <div style={{ marginTop: '2rem' }}>
+        <OperatorReviews />
+      </div>
     </motion.div>
   );
 }

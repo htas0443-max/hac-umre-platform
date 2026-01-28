@@ -325,6 +325,12 @@ export const reviewsApi = {
     const response = await api.delete(`/api/reviews/${reviewId}`);
     return response.data;
   },
+
+  // Operatör: Kendi firmasının yorumlarını getir
+  getOperatorReviews: async () => {
+    const response = await api.get('/api/operator/reviews');
+    return response.data;
+  },
 };
 
 export default api;

@@ -1861,6 +1861,53 @@ async def delete_review(review_id: str, user: dict = Depends(get_current_user)):
         log_security_event("REVIEW_DELETE_ERROR", {"error": str(e)}, "ERROR")
         raise HTTPException(status_code=400, detail="Yorum silinirken hata oluştu")
 
+@app.get("/api/operator/reviews")
+async def get_operator_own_reviews(user: dict = Depends(get_current_user)):
+    """Operatör: Kendi firmasına ait yorumları görür"""
+    try:
+        # Operatör kontrolü
+        if user.get("role") not in ["operator", "admin"]:
+            raise HTTPException(status_code=403, detail="Bu işlem için operatör yetkisi gerekli")
+        
+        # Operatörün firma adını al (users tablosundan veya profile'dan)
+        user_response = supabase.table("users").select("company_name").eq("id", user["id"]).execute()
+        if not user_response.data or not user_response.data[0].get("company_name"):
+            raise HTTPException(status_code=400, detail="Firma adı tanımlı değil")
+        
+        operator_name = user_response.data[0]["company_name"]
+        
+        # Bu firmaya ait tüm yorumları getir
+        response = supabase.table("operator_reviews").select(
+            "id, rating, title, comment, status, created_at, helpful_count"
+        ).eq("operator_name", operator_name).order("created_at", desc=True).execute()
+        
+        reviews = response.data
+        
+        # İstatistikler
+        approved_reviews = [r for r in reviews if r["status"] == "approved"]
+        ratings = [r["rating"] for r in approved_reviews]
+        avg_rating = round(sum(ratings) / len(ratings), 1) if ratings else 0
+        
+        # Status breakdown
+        status_counts = {
+            "approved": len([r for r in reviews if r["status"] == "approved"]),
+            "pending": len([r for r in reviews if r["status"] == "pending"]),
+            "rejected": len([r for r in reviews if r["status"] == "rejected"]),
+        }
+        
+        return {
+            "operator_name": operator_name,
+            "reviews": reviews,
+            "total": len(reviews),
+            "average_rating": avg_rating,
+            "status_counts": status_counts
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_security_event("OPERATOR_REVIEWS_FETCH_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Yorumlar yüklenirken hata oluştu")
+
 @app.get("/api/admin/reviews")
 async def get_pending_reviews(
     status: str = "pending",
