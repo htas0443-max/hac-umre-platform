@@ -331,6 +331,21 @@ export const reviewsApi = {
     const response = await api.get('/api/operator/reviews');
     return response.data;
   },
+
+  // Admin: Bekleyen yorumları getir
+  getAdminReviews: async (status: string = 'pending') => {
+    const response = await api.get(`/api/admin/reviews?status=${status}`);
+    return response.data;
+  },
+
+  // Admin: Yorum onayla/reddet
+  moderate: async (reviewId: string, action: 'approve' | 'reject', reason?: string) => {
+    const response = await api.put(`/api/admin/reviews/${reviewId}/moderate`, {
+      action,
+      rejection_reason: reason
+    });
+    return response.data;
+  },
 };
 
 export default api;

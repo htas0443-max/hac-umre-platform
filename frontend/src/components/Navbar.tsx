@@ -72,6 +72,7 @@ export default function Navbar() {
               {user.role === 'admin' && (
                 <>
                   <Link to="/admin/approval" className="navbar-link" data-testid="admin-approval-link">Tur Onayları</Link>
+                  <Link to="/admin/reviews" className="navbar-link" data-testid="admin-reviews-link">Yorum Moderasyonu</Link>
                   <Link to="/admin/import" className="navbar-link" data-testid="admin-link">CSV Import</Link>
                 </>
               )}
@@ -165,6 +166,9 @@ export default function Navbar() {
                     <Link to="/admin/import" className="navbar-mobile-link" onClick={closeMenu}><FolderUp size={18} style={{ marginRight: '0.5rem' }} /> CSV Import</Link>
                   </>
                 )}
+                <Link to="/profile" className="navbar-mobile-link" onClick={closeMenu}>
+                  Profilim
+                </Link>
                 <div className="navbar-mobile-divider" />
                 <span className="navbar-mobile-email">{user.email}</span>
                 <button onClick={() => { logout(); closeMenu(); }} className="btn btn-outline navbar-mobile-btn">

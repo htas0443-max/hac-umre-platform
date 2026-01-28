@@ -39,6 +39,7 @@ const VerificationPage = React.lazy(() => import('./pages/VerificationPage'));
 const TrustFaqPage = React.lazy(() => import('./pages/TrustFaqPage'));
 const Favorites = React.lazy(() => import('./pages/Favorites'));
 const Profile = React.lazy(() => import('./pages/Profile'));
+const AdminReviewModeration = React.lazy(() => import('./pages/AdminReviewModeration'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 // Loading component for Suspense fallback
@@ -162,6 +163,14 @@ function AppRoutes() {
                 element={
                   <AdminRoute>
                     <AdminDashboard />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/reviews"
+                element={
+                  <AdminRoute>
+                    <AdminReviewModeration />
                   </AdminRoute>
                 }
               />
