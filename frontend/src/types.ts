@@ -82,11 +82,14 @@ export interface AIProvider {
 export interface AuthContextType {
   user: User | null;
   token: string | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ requiresOTP: boolean; email?: string }>;
   register: (email: string, password: string, company_name?: string) => Promise<void>;
   logout: () => void;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (newPassword: string) => Promise<void>;
+  sendEmailOTP: (email: string) => Promise<void>;
+  verifyEmailOTP: (email: string, token: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   loading: boolean;
 }
 

@@ -18,8 +18,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
+        // Check if there's a pending 2FA verification
+        const pending2FA = localStorage.getItem('pending_2fa_email');
+        if (pending2FA) {
+          // Don't load profile yet, 2FA is pending
+          setLoading(false);
+          return;
+        }
         setToken(session.access_token);
-        localStorage.setItem('token', session.access_token); // Save to localStorage
+        localStorage.setItem('token', session.access_token);
         loadUserProfile(session.user.id);
       } else {
         setLoading(false);
@@ -29,16 +36,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
       if (session) {
+        // Check if this is from OAuth (SIGNED_IN event) and user is admin/operator
+        const metadata = session.user.user_metadata;
+        const userRole = metadata?.user_role;
+
+        // If admin/operator signing in via OAuth, require 2FA
+        if (event === 'SIGNED_IN' && (userRole === 'admin' || userRole === 'super_admin' || userRole === 'operator')) {
+          const email = session.user.email;
+          if (email && !localStorage.getItem('pending_2fa_email')) {
+            // Sign out and require OTP
+            localStorage.setItem('pending_2fa_email', email);
+            await supabase.auth.signOut();
+            // Send OTP
+            await supabase.auth.signInWithOtp({
+              email,
+              options: { shouldCreateUser: false }
+            });
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Check if there's a pending 2FA verification
+        const pending2FA = localStorage.getItem('pending_2fa_email');
+        if (pending2FA) {
+          setLoading(false);
+          return;
+        }
+
         setToken(session.access_token);
-        localStorage.setItem('token', session.access_token); // Save to localStorage
+        localStorage.setItem('token', session.access_token);
         loadUserProfile(session.user.id);
       } else {
         setUser(null);
         setToken(null);
-        localStorage.removeItem('token'); // Clear localStorage
+        localStorage.removeItem('token');
         setLoading(false);
       }
     });
@@ -69,7 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<{ requiresOTP: boolean; email?: string }> => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -79,14 +114,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw new Error(translateError(error.message));
 
       if (data.session && data.user) {
+        // Check if user is admin or operator - require 2FA
+        const metadata = data.user.user_metadata;
+        const userRole = metadata?.user_role;
+
+        if (userRole === 'admin' || userRole === 'super_admin' || userRole === 'operator') {
+          // Admin/Operator needs 2FA - sign out and require OTP
+          await supabase.auth.signOut();
+          // Send OTP to email
+          await sendEmailOTP(email);
+          return { requiresOTP: true, email };
+        }
+
+        // Non-admin users - complete login normally
         setSession(data.session);
         setToken(data.session.access_token);
-
-        // Save to localStorage for API calls
         localStorage.setItem('token', data.session.access_token);
 
-        // Use metadata for faster login - avoid extra DB query
-        const metadata = data.user.user_metadata;
         if (metadata && metadata.user_role) {
           setUser({
             email: data.user.email || email,
@@ -95,7 +139,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             created_at: data.user.created_at
           });
         } else {
-          // Fallback to profile load only if metadata missing
           await loadUserProfile(data.user.id);
         }
 
@@ -110,12 +153,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           }
         } catch (syncError) {
-          // Sync error should not block login
           console.error('Favorites sync error:', syncError);
+        }
+
+        return { requiresOTP: false };
+      }
+
+      return { requiresOTP: false };
+    } catch (error: any) {
+      throw new Error(translateError(error.message) || 'Giriş başarısız');
+    }
+  };
+
+  const sendEmailOTP = async (email: string) => {
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false,
+        }
+      });
+      if (error) throw new Error(translateError(error.message));
+    } catch (error: any) {
+      throw new Error(translateError(error.message) || 'Doğrulama kodu gönderilemedi');
+    }
+  };
+
+  const verifyEmailOTP = async (email: string, token: string) => {
+    try {
+      const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'email'
+      });
+
+      if (error) throw new Error(translateError(error.message));
+
+      if (data.session && data.user) {
+        setSession(data.session);
+        setToken(data.session.access_token);
+        localStorage.setItem('token', data.session.access_token);
+
+        const metadata = data.user.user_metadata;
+        if (metadata && metadata.user_role) {
+          setUser({
+            email: data.user.email || email,
+            role: metadata.user_role,
+            company_name: metadata.company_name,
+            created_at: data.user.created_at
+          });
+        } else {
+          await loadUserProfile(data.user.id);
         }
       }
     } catch (error: any) {
-      throw new Error(translateError(error.message) || 'Giriş başarısız');
+      throw new Error(translateError(error.message) || 'Doğrulama başarısız');
     }
   };
 
@@ -188,8 +280,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const signInWithGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + '/login',
+        }
+      });
+      if (error) throw new Error(translateError(error.message));
+    } catch (error: any) {
+      throw new Error(translateError(error.message) || 'Google ile giriş başarısız');
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, resetPassword, updatePassword, loading }}>
+    <AuthContext.Provider value={{ user, token, login, register, logout, resetPassword, updatePassword, sendEmailOTP, verifyEmailOTP, signInWithGoogle, loading }}>
       {children}
     </AuthContext.Provider>
   );
