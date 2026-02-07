@@ -17,6 +17,8 @@ const adminMenuItems: MenuItem[] = [
     { path: '/admin/reviews', label: 'Yorumlar', icon: '⭐' },
     { path: '/admin/tickets', label: 'Destek Biletleri', icon: '🎫' },
     { path: '/admin/import', label: 'CSV Import', icon: '📥' },
+    { path: '/admin/audit', label: 'Audit Log', icon: '🛡️' },
+    { path: '/admin/analytics', label: 'Ajanta Analytics', icon: '📈' },
     { path: '/tours', label: 'Tüm Turlar', icon: '🌍' },
 ];
 

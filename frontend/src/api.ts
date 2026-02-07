@@ -179,6 +179,14 @@ export const adminApi = {
     });
     return response.data;
   },
+  getAuditLogs: async (params: Record<string, string | number>) => {
+    const response = await api.get('/api/admin/audit-logs', { params });
+    return response.data;
+  },
+  getAgencyAnalytics: async () => {
+    const response = await api.get('/api/admin/agency-analytics');
+    return response.data;
+  },
 };
 
 // Tickets API

@@ -986,8 +986,39 @@ async def get_operator_stats(user: dict = Depends(require_operator)):
         raise HTTPException(status_code=500, detail="İstatistikler alınırken bir hata oluştu")
 
 # Admin Approval Routes
+
+# ============================================
+# AUDIT LOG HELPER
+# ============================================
+async def write_audit_log(
+    request: Request,
+    user_id: str,
+    role: str,
+    action: str,
+    entity: str = None,
+    entity_id: str = None,
+    details: dict = None
+):
+    """Audit log'a kayıt ekler. Hata alırsa sessizce geçer (ana işlemi bozmaz)."""
+    try:
+        ip = request.client.host if request.client else "unknown"
+        ua = request.headers.get("user-agent", "")[:500]
+        supabase.table("audit_logs").insert({
+            "user_id": user_id,
+            "role": role,
+            "action": action,
+            "entity": entity,
+            "entity_id": str(entity_id) if entity_id else None,
+            "details": details or {},
+            "ip_address": ip,
+            "user_agent": ua,
+        }).execute()
+    except Exception as e:
+        log_security_event("AUDIT_LOG_ERROR", {"error": str(e)}, "WARNING")
+
+
 @app.put("/api/admin/tours/{tour_id}/approve")
-async def approve_tour(tour_id: int, user: dict = Depends(require_admin)):
+async def approve_tour(tour_id: int, request: Request, user: dict = Depends(require_admin)):
     """Admin turu onaylar (RPC)"""
     try:
         # Use Supabase RPC function
@@ -998,7 +1029,7 @@ async def approve_tour(tour_id: int, user: dict = Depends(require_admin)):
         }).execute()
         
         # Audit Log
-        await log_admin_action(request, user["id"], "APPROVE_TOUR", {"tour_id": tour_id})
+        await write_audit_log(request, user["id"], "admin", "tour.approve", "tour", tour_id)
         
         return response.data
     except Exception as e:
@@ -1006,7 +1037,7 @@ async def approve_tour(tour_id: int, user: dict = Depends(require_admin)):
         raise HTTPException(status_code=400, detail="Tur onaylanırken bir hata oluştu")
 
 @app.put("/api/admin/tours/{tour_id}/reject")
-async def reject_tour(tour_id: int, reason: str, user: dict = Depends(require_admin)):
+async def reject_tour(tour_id: int, reason: str, request: Request, user: dict = Depends(require_admin)):
     """Admin turu reddeder (RPC)"""
     try:
         # Use Supabase RPC function
@@ -1017,12 +1048,106 @@ async def reject_tour(tour_id: int, reason: str, user: dict = Depends(require_ad
         }).execute()
         
         # Audit Log
-        await log_admin_action(request, user["id"], "REJECT_TOUR", {"tour_id": tour_id, "reason": reason})
+        await write_audit_log(request, user["id"], "admin", "tour.reject", "tour", tour_id, {"reason": reason})
         
         return response.data
     except Exception as e:
         log_security_event("TOUR_REJECT_ERROR", {"error": str(e)}, "ERROR")
         raise HTTPException(status_code=400, detail="Tur reddedilirken bir hata oluştu")
+
+# ============================================
+# ADMIN: AUDIT LOG PANEL
+# ============================================
+@app.get("/api/admin/audit-logs")
+async def get_audit_logs(
+    user: dict = Depends(require_admin),
+    skip: int = 0,
+    limit: int = 20,
+    role: Optional[str] = None,
+    action: Optional[str] = None,
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+):
+    """Audit loglarını listeler (sadece admin)"""
+    try:
+        query = supabase.table("audit_logs").select("*")
+        count_query = supabase.table("audit_logs").select("id", count="exact")
+
+        if role:
+            query = query.eq("role", role)
+            count_query = count_query.eq("role", role)
+        if action:
+            query = query.eq("action", action)
+            count_query = count_query.eq("action", action)
+        if date_from:
+            query = query.gte("created_at", f"{date_from}T00:00:00")
+            count_query = count_query.gte("created_at", f"{date_from}T00:00:00")
+        if date_to:
+            query = query.lte("created_at", f"{date_to}T23:59:59")
+            count_query = count_query.lte("created_at", f"{date_to}T23:59:59")
+
+        query = query.order("created_at", desc=True).range(skip, skip + limit - 1)
+        response = query.execute()
+        count_response = count_query.execute()
+
+        return {
+            "logs": response.data,
+            "total": count_response.count or 0,
+            "skip": skip,
+            "limit": limit,
+        }
+    except Exception as e:
+        log_security_event("AUDIT_LOG_QUERY_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Audit logları alınırken hata oluştu")
+
+# ============================================
+# ADMIN: AGENCY ANALYTICS
+# ============================================
+@app.get("/api/admin/agency-analytics")
+async def get_agency_analytics(user: dict = Depends(require_admin)):
+    """Ajanta bazlı analytics (sadece admin)"""
+    try:
+        # Tüm operatörlerin turlarını grupla
+        response = supabase.table("tours").select(
+            "operator_id, operator, status, created_at"
+        ).not_.is_("operator_id", "null").execute()
+
+        # Ajanta bazlı gruplama
+        agency_map: Dict[str, dict] = {}
+        for tour in response.data:
+            oid = tour.get("operator_id")
+            if not oid:
+                continue
+            if oid not in agency_map:
+                agency_map[oid] = {
+                    "agency_id": oid,
+                    "agency_name": tour.get("operator", "İsimsiz"),
+                    "total_tours": 0,
+                    "approved_tours": 0,
+                    "pending_tours": 0,
+                    "rejected_tours": 0,
+                    "last_activity": tour.get("created_at", ""),
+                }
+            stats = agency_map[oid]
+            stats["total_tours"] += 1
+            status = tour.get("status", "")
+            if status == "approved":
+                stats["approved_tours"] += 1
+            elif status == "pending":
+                stats["pending_tours"] += 1
+            elif status == "rejected":
+                stats["rejected_tours"] += 1
+            # En son aktivite
+            created = tour.get("created_at", "")
+            if created > stats["last_activity"]:
+                stats["last_activity"] = created
+
+        agencies = sorted(agency_map.values(), key=lambda x: x["total_tours"], reverse=True)
+
+        return {"agencies": agencies}
+    except Exception as e:
+        log_security_event("AGENCY_ANALYTICS_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Analytics verileri alınırken hata oluştu")
 
 # AI Routes
 @app.post("/api/compare")

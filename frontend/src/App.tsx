@@ -42,6 +42,8 @@ const Profile = React.lazy(() => import('./pages/Profile'));
 const AdminReviewModeration = React.lazy(() => import('./pages/AdminReviewModeration'));
 const AdminTourCreate = React.lazy(() => import('./pages/AdminTourCreate'));
 const AdminLayout = React.lazy(() => import('./components/AdminLayout'));
+const AdminAuditLog = React.lazy(() => import('./pages/AdminAuditLog'));
+const AdminAnalytics = React.lazy(() => import('./pages/AdminAnalytics'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 // Loading component for Suspense fallback
@@ -159,6 +161,8 @@ function AppRoutes() {
                 <Route path="add-tour" element={<AdminTourCreate />} />
                 <Route path="tickets" element={<AdminTickets />} />
                 <Route path="tickets/:id" element={<AdminTicketDetail />} />
+                <Route path="audit" element={<AdminAuditLog />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
               </Route>
 
               {/* Support Ticket Routes */}
