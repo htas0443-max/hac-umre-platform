@@ -1,0 +1,74 @@
+# License/Package endpoints for backend
+
+@app.get("/api/packages")
+async def get_packages():
+    """Mevcut paketleri listeler"""
+    try:
+        response = supabase.table("packages").select("*").eq("is_active", True).execute()
+        return {"packages": response.data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Paketler alınamadı: {str(e)}")
+
+@app.get("/api/user/license")
+async def get_user_license(user: dict = Depends(get_current_user)):
+    """Kullanıcının aktif lisansını getirir"""
+    try:
+        response = supabase.table("user_licenses").select(
+            "*, package:packages(*)"
+        ).eq("user_id", user["id"]).eq("is_active", True).gte("expires_at", "now()").execute()
+        
+        return {
+            "license": response.data[0] if response.data else None,
+            "has_active_license": len(response.data) > 0
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lisans bilgisi alınamadı: {str(e)}")
+
+@app.get("/api/user/usage/{feature_name}")
+async def get_feature_usage(feature_name: str, user: dict = Depends(get_current_user)):
+    """Kullanıcının feature kullanım bilgisini getirir"""
+    try:
+        # Check license and get limits
+        response = supabase.rpc("check_user_feature", {
+            "user_id_param": user["id"],
+            "feature_name_param": feature_name
+        }).execute()
+        
+        result = response.data[0] if response.data else {"allowed": False, "remaining": 0, "limit_value": 0}
+        
+        return {
+            "feature": feature_name,
+            "allowed": result["allowed"],
+            "remaining": result["remaining"],
+            "limit": result["limit_value"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Kullanım bilgisi alınamadı: {str(e)}")
+
+async def check_feature_access(user: dict, feature_name: str):
+    """Helper function to check if user can use feature"""
+    try:
+        response = supabase.rpc("check_user_feature", {
+            "user_id_param": user["id"],
+            "feature_name_param": feature_name
+        }).execute()
+        
+        if not response.data or not response.data[0]["allowed"]:
+            limit = response.data[0]["limit_value"] if response.data else 0
+            raise HTTPException(
+                status_code=403, 
+                detail=f"Bu özelliği kullanma hakkınız doldu. Limit: {limit}. Paketi yükseltin."
+            )
+        
+        # Record usage
+        supabase.rpc("record_feature_usage", {
+            "user_id_param": user["id"],
+            "feature_name_param": feature_name
+        }).execute()
+        
+        return True
+    except HTTPException:
+        raise
+    except Exception as e:
+        # If license check fails, allow for backward compatibility
+        return True

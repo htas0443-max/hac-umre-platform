@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Teal circle background -->
+  <circle cx="32" cy="32" r="32" fill="#0D9488"/>
+  <!-- Kaaba body -->
+  <rect x="18" y="20" width="28" height="28" rx="2" fill="#1a1a2e"/>
+  <!-- Gold band (Kiswa) -->
+  <rect x="18" y="30" width="28" height="5" fill="#C9A227"/>
+  <!-- Gold door -->
+  <rect x="28" y="36" width="8" height="12" rx="1" fill="#C9A227"/>
+  <!-- Crescent moon -->
+  <circle cx="32" cy="15" r="5" fill="#F5F5DC"/>
+  <circle cx="34" cy="14" r="4" fill="#0D9488"/>
+</svg>

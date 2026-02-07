@@ -1,0 +1,8 @@
+# Hajj & Umrah Platform - Kubernetes Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hajj-umrah
+  labels:
+    app: hajj-umrah-platform
+    environment: production

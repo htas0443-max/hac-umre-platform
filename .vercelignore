@@ -1,0 +1,10 @@
+node_modules
+.git
+*.log
+test_core.py
+tests/
+test_reports/
+__pycache__
+*.pyc
+.env.local
+.DS_Store

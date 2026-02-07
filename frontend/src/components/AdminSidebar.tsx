@@ -1,0 +1,141 @@
+import { memo, useState, useEffect } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '../AuthContext';
+
+interface MenuItem {
+    path: string;
+    label: string;
+    icon: string;
+    badge?: number;
+}
+
+const adminMenuItems: MenuItem[] = [
+    { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
+    { path: '/admin/approval', label: 'Tur Onayları', icon: '✅' },
+    { path: '/admin/add-tour', label: 'Yeni Tur Ekle', icon: '➕' },
+    { path: '/admin/reviews', label: 'Yorumlar', icon: '⭐' },
+    { path: '/admin/tickets', label: 'Destek Biletleri', icon: '🎫' },
+    { path: '/admin/import', label: 'CSV Import', icon: '📥' },
+    { path: '/tours', label: 'Tüm Turlar', icon: '🌍' },
+];
+
+interface AdminSidebarProps {
+    pendingCount?: number;
+}
+
+const AdminSidebar = memo(function AdminSidebar({ pendingCount = 0 }: AdminSidebarProps) {
+    const location = useLocation();
+    const { user, logout } = useAuth();
+    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+    // Close mobile menu on route change
+    useEffect(() => {
+        setIsMobileOpen(false);
+    }, [location.pathname]);
+
+    const sidebarVariants = {
+        expanded: { width: 260 },
+        collapsed: { width: 72 }
+    };
+
+    return (
+        <>
+            {/* Mobile Toggle Button */}
+            <button
+                className="admin-sidebar-mobile-toggle"
+                onClick={() => setIsMobileOpen(!isMobileOpen)}
+                aria-label="Toggle sidebar"
+            >
+                {isMobileOpen ? '✕' : '☰'}
+            </button>
+
+            {/* Overlay for mobile */}
+            <AnimatePresence>
+                {isMobileOpen && (
+                    <motion.div
+                        className="admin-sidebar-overlay"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsMobileOpen(false)}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Sidebar */}
+            <motion.aside
+                className={`admin-sidebar ${isMobileOpen ? 'mobile-open' : ''}`}
+                variants={sidebarVariants}
+                animate={isCollapsed ? 'collapsed' : 'expanded'}
+                transition={{ duration: 0.2 }}
+            >
+                {/* Header */}
+                <div className="admin-sidebar-header">
+                    <Link to="/" className="admin-sidebar-logo">
+                        <span className="admin-sidebar-logo-icon">🕋</span>
+                        {!isCollapsed && <span className="admin-sidebar-logo-text">Admin Panel</span>}
+                    </Link>
+                    <button
+                        className="admin-sidebar-collapse-btn"
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    >
+                        {isCollapsed ? '→' : '←'}
+                    </button>
+                </div>
+
+                {/* Navigation */}
+                <nav className="admin-sidebar-nav">
+                    <ul className="admin-sidebar-menu">
+                        {adminMenuItems.map((item) => (
+                            <li key={item.path} className="admin-sidebar-menu-item">
+                                <NavLink
+                                    to={item.path}
+                                    end={item.path === '/admin/dashboard'}
+                                    className={({ isActive }) =>
+                                        `admin-sidebar-link ${isActive ? 'active' : ''}`
+                                    }
+                                    title={isCollapsed ? item.label : undefined}
+                                >
+                                    <span className="admin-sidebar-link-icon">{item.icon}</span>
+                                    {!isCollapsed && (
+                                        <>
+                                            <span className="admin-sidebar-link-text">{item.label}</span>
+                                            {item.path === '/admin/approval' && pendingCount > 0 && (
+                                                <span className="admin-sidebar-badge">{pendingCount}</span>
+                                            )}
+                                        </>
+                                    )}
+                                </NavLink>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+
+                {/* Footer */}
+                <div className="admin-sidebar-footer">
+                    <div className="admin-sidebar-user">
+                        <span className="admin-sidebar-user-icon">👤</span>
+                        {!isCollapsed && (
+                            <div className="admin-sidebar-user-info">
+                                <span className="admin-sidebar-user-email">{user?.email}</span>
+                                <span className="admin-sidebar-user-role">Admin</span>
+                            </div>
+                        )}
+                    </div>
+                    <button
+                        onClick={() => logout()}
+                        className="admin-sidebar-logout"
+                        title="Çıkış Yap"
+                    >
+                        {isCollapsed ? '🚪' : 'Çıkış'}
+                    </button>
+                </div>
+            </motion.aside>
+        </>
+    );
+});
+
+export default AdminSidebar;

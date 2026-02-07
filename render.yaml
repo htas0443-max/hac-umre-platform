@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: hajj-umre-backend
+    runtime: python
+    region: frankfurt
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://www.hacveumreturlari.com,https://hacveumreturlari.com,https://www.hacveumreturlari.net,https://hacveumreturlari.net,https://hac-umre-platform.pages.dev
+      - key: ENVIRONMENT
+        value: production
+      - key: PYTHON_VERSION
+        value: "3.11"
+    rootDir: backend
+    healthCheckPath: /health

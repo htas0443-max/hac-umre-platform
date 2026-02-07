@@ -1,0 +1,25 @@
+{
+    "name": "Hac & Umre Platformu",
+    "short_name": "Hac Umre",
+    "description": "Yapay zeka desteği ile en uygun Hac ve Umre turunu bulun",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#0D9488",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "tr",
+    "icons": [
+        {
+            "src": "/vite.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "travel",
+        "lifestyle"
+    ],
+    "prefer_related_applications": false
+}

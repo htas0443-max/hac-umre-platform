@@ -1,0 +1,19 @@
+# Hac & Umre Platformu - robots.txt
+# Arama motorlarına izin ver
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /operator/
+Disallow: /support/tickets/
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+
+# Sitemap konumu
+Sitemap: https://hacveumreturlari.net/sitemap.xml
+
+# Crawl delay (isteğe bağlı - sunucu yükünü azaltır)
+Crawl-delay: 1
