@@ -25,9 +25,13 @@ from security import (
     _rate_limit_exceeded_handler,
     mask_sensitive_data
 )
+from logging_config import init_sentry, RequestLoggingMiddleware, logger
 
 # Load environment variables
 load_dotenv()
+
+# Initialize Sentry monitoring (production error tracking)
+init_sentry()
 
 # Initialize FastAPI app
 app = FastAPI(title="Hac & Umre Platformu API")
@@ -62,6 +66,9 @@ app.state.limiter = limiter
 app.add_exception_handler(429, _rate_limit_exceeded_handler)
 # Security headers middleware from security.py
 app.middleware("http")(add_security_headers)
+
+# ✅ REQUEST LOGGING (her API çağrısını loglar)
+app.add_middleware(RequestLoggingMiddleware)
 
 # ===== SEC-006: GENERIC ERROR HANDLER (Information Leakage Prevention) =====
 from fastapi.exceptions import RequestValidationError
