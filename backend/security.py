@@ -267,13 +267,13 @@ async def add_security_headers(request: Request, call_next):
     # Note: unsafe-inline needed for React, but unsafe-eval removed
     csp = (
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.youtube.com; "  # unsafe-eval REMOVED
+        "script-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.youtube.com https://challenges.cloudflare.com; "  # unsafe-eval REMOVED
         "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
         "font-src 'self' https://fonts.gstatic.com data:; "
         "img-src 'self' data: https: blob:; "
         "media-src 'self' https://www.youtube.com https://*.youtube.com; "
-        "frame-src 'self' https://www.youtube.com https://*.youtube.com; "  # YouTube embed için
-        "connect-src 'self' https://*.supabase.co https://fonts.googleapis.com https://fonts.gstatic.com wss://*.supabase.co; "
+        "frame-src 'self' https://www.youtube.com https://*.youtube.com https://challenges.cloudflare.com; "  # YouTube embed + Turnstile
+        "connect-src 'self' https://*.supabase.co https://fonts.googleapis.com https://fonts.gstatic.com wss://*.supabase.co https://challenges.cloudflare.com; "
         "frame-ancestors 'none'; "
         "base-uri 'self'; "
         "form-action 'self'; "
@@ -536,3 +536,47 @@ def record_successful_login(ip: str):
     """Clear failed attempts on successful login"""
     if ip in failed_login_attempts:
         failed_login_attempts[ip] = 0
+
+
+# ============================================
+# CLOUDFLARE TURNSTILE VERIFICATION
+# ============================================
+
+TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY", "")
+TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+
+async def verify_turnstile_token(token: str, ip: str = "") -> bool:
+    """
+    Cloudflare Turnstile token doğrulaması.
+    Secret key yoksa devre dışı (development modda True döner).
+    """
+    if not TURNSTILE_SECRET_KEY:
+        return True  # Development modda geç
+
+    if not token:
+        return False
+
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.post(
+                TURNSTILE_VERIFY_URL,
+                data={
+                    "secret": TURNSTILE_SECRET_KEY,
+                    "response": token,
+                    "remoteip": ip,
+                }
+            )
+            result = response.json()
+
+            if not result.get("success", False):
+                log_security_event("TURNSTILE_FAILED", {
+                    "ip": ip,
+                    "error_codes": result.get("error-codes", []),
+                }, "WARN")
+                return False
+
+            return True
+    except Exception as e:
+        log_security_event("TURNSTILE_ERROR", {"error": str(e)}, "WARN")
+        return True  # Graceful degradation — hata durumunda engelleme

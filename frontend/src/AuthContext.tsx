@@ -14,7 +14,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ requiresOTP: boolean; email?: string }>;
+  login: (email: string, password: string, turnstile_token?: string) => Promise<{ requiresOTP: boolean; email?: string }>;
   register: (email: string, password: string, role?: string, company_name?: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -109,9 +109,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const login = async (email: string, password: string): Promise<{ requiresOTP: boolean; email?: string }> => {
+  const login = async (email: string, password: string, turnstile_token?: string): Promise<{ requiresOTP: boolean; email?: string }> => {
     try {
-      const data = await authApi.login(email, password);
+      const data = await authApi.login(email, password, turnstile_token);
       // Backend returns { token, user } — check role for 2FA requirement
       const userRole = data.user?.role;
 

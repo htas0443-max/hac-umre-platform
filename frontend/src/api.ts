@@ -22,13 +22,55 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add token
+// ============================================
+// API REQUEST SIGNING (HMAC-SHA256)
+// ============================================
+const API_SIGNING_KEY = import.meta.env.VITE_API_SIGNING_KEY || '';
+
+async function computeSignature(
+  method: string, path: string, timestamp: string, nonce: string, bodyHash: string
+): Promise<string> {
+  const message = `${method}:${path}:${timestamp}:${nonce}:${bodyHash}`;
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw', encoder.encode(API_SIGNING_KEY), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(message));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function sha256Hash(data: string): Promise<string> {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(data));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function generateNonce(): string {
+  return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+// Request interceptor: JWT token + Request Signing
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
+    // JWT token
     const token = getAuthToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Request signing (sadece signing key varsa aktif)
+    if (API_SIGNING_KEY) {
+      const method = (config.method || 'GET').toUpperCase();
+      const path = new URL(config.url || '', config.baseURL || window.location.origin).pathname;
+      const timestamp = Math.floor(Date.now() / 1000).toString();
+      const nonce = generateNonce();
+      const bodyStr = config.data ? (typeof config.data === 'string' ? config.data : JSON.stringify(config.data)) : '';
+      const bodyHash = await sha256Hash(bodyStr);
+
+      config.headers['X-Timestamp'] = timestamp;
+      config.headers['X-Nonce'] = nonce;
+      config.headers['X-Signature'] = await computeSignature(method, path, timestamp, nonce, bodyHash);
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -55,8 +97,8 @@ export const authApi = {
     const response = await api.post('/api/auth/register', { email, password, role, company_name });
     return response.data;
   },
-  login: async (email: string, password: string) => {
-    const response = await api.post('/api/auth/login', { email, password });
+  login: async (email: string, password: string, turnstile_token?: string) => {
+    const response = await api.post('/api/auth/login', { email, password, turnstile_token });
     return response.data;
   },
   me: async () => {

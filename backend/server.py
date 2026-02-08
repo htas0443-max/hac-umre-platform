@@ -23,8 +23,10 @@ from security import (
     record_successful_login,
     log_security_event,
     _rate_limit_exceeded_handler,
-    mask_sensitive_data
+    mask_sensitive_data,
+    verify_turnstile_token
 )
+from signing import verify_request_signature
 from logging_config import init_sentry, RequestLoggingMiddleware, logger
 
 # Load environment variables
@@ -66,6 +68,8 @@ app.state.limiter = limiter
 app.add_exception_handler(429, _rate_limit_exceeded_handler)
 # Security headers middleware from security.py
 app.middleware("http")(add_security_headers)
+# ✅ API REQUEST SIGNING — HMAC-SHA256 doğrulama
+app.middleware("http")(verify_request_signature)
 
 # ✅ REQUEST LOGGING (her API çağrısını loglar)
 app.add_middleware(RequestLoggingMiddleware)
@@ -332,6 +336,7 @@ class UserRegister(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    turnstile_token: Optional[str] = None  # Cloudflare Turnstile anti-bot token
 
 class TourCreate(BaseModel):
     title: str
@@ -493,6 +498,11 @@ async def login(request: Request, credentials: UserLogin, response: Response):
     try:
         # Check brute force
         check_brute_force(client_ip)
+        
+        # Cloudflare Turnstile anti-bot doğrulaması
+        if not await verify_turnstile_token(credentials.turnstile_token or "", client_ip):
+            log_security_event("TURNSTILE_REJECTED", {"email": credentials.email, "ip": client_ip}, "WARN")
+            raise HTTPException(status_code=403, detail="Bot doğrulaması başarısız. Lütfen tekrar deneyin.")
         
         # Email sanitization
         email = validate_input(credentials.email, "email")

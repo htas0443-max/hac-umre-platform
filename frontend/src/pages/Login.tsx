@@ -5,6 +5,7 @@ import { Lock, Mail, Eye, EyeOff, Key, AlertTriangle, Clock, Rocket, Shield } fr
 import { useAuth } from '../AuthContext';
 import { useSEO } from '../hooks/useSEO';
 import EmailOTPVerify from '../components/EmailOTPVerify';
+import CloudflareTurnstile from '../components/CloudflareTurnstile';
 
 // Login attempt tracking
 const LOCKOUT_KEY = 'login_lockout';
@@ -43,6 +44,7 @@ export default function Login() {
   // OTP state for admin 2FA
   const [showOTP, setShowOTP] = useState(false);
   const [otpEmail, setOtpEmail] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
   const { login, sendEmailOTP, verifyEmailOTP, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
@@ -97,7 +99,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const result = await login(email, password);
+      const result = await login(email, password, turnstileToken);
 
       // Check if admin needs OTP verification
       if (result.requiresOTP && result.email) {
@@ -350,6 +352,12 @@ export default function Login() {
               <Key size={14} style={{ marginRight: '0.25rem' }} /> Şifremi unuttum
             </Link>
           </motion.div>
+
+          {/* Cloudflare Turnstile Anti-Bot */}
+          <CloudflareTurnstile
+            onTokenReceived={(token) => setTurnstileToken(token)}
+            onExpired={() => setTurnstileToken('')}
+          />
 
           <motion.button
             type="submit"

@@ -46,3 +46,13 @@
 
 /support/tickets/*
   Cache-Control: no-store, no-cache, must-revalidate
+
+# Auth pages - No cache
+/login
+  Cache-Control: no-store, no-cache, must-revalidate
+
+/register
+  Cache-Control: no-store, no-cache, must-revalidate
+
+/forgot-password
+  Cache-Control: no-store, no-cache, must-revalidate
