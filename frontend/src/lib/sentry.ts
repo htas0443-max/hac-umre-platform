@@ -3,8 +3,6 @@
  * 
  * Production ortamında tüm runtime errorları yakalar.
  * User ID, browser bilgisi ve hata detayları otomatik raporlanır.
- * 
- * Kurulum: npm install @sentry/react
  */
 import * as Sentry from '@sentry/react';
 
@@ -19,6 +17,7 @@ export function initSentry() {
     Sentry.init({
         dsn: SENTRY_DSN,
         environment: import.meta.env.MODE || 'development',
+        sendDefaultPii: true,
 
         // Performance: %20 transaction sampling
         tracesSampleRate: 0.2,

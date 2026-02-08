@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Search, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Shield, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { adminApi } from '../api';
 import { useSEO } from '../hooks/useSEO';
 

@@ -14,7 +14,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ requiresOTP: boolean; email?: string }>;
   register: (email: string, password: string, role?: string, company_name?: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -109,13 +109,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<{ requiresOTP: boolean; email?: string }> => {
     try {
       const data = await authApi.login(email, password);
-      // Backend returns { token, user }
+      // Backend returns { token, user } — check role for 2FA requirement
+      const userRole = data.user?.role;
+
+      if (userRole === 'admin' || userRole === 'super_admin' || userRole === 'operator') {
+        // Critical role detected: don't set token/user yet.
+        // Sign out the just-created backend session, then send OTP.
+        try { await authApi.logout(); } catch (_) { /* ignore logout errors */ }
+        await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+        return { requiresOTP: true, email };
+      }
+
+      // Normal user — set session directly
       setToken(data.token);
       setAuthToken(data.token);
       setUser(data.user);
+      return { requiresOTP: false };
     } catch (error: any) {
       const msg = error.response?.data?.detail || error.message || 'Giriş yapılamadı';
       throw new Error(translateError(msg));

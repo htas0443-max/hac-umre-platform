@@ -9,7 +9,7 @@ import { useSEO } from '../hooks/useSEO';
 
 export default function AdminTourCreate() {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    useAuth();
     const [loading, setLoading] = useState(false);
 
     useSEO({ title: 'Yeni Tur Ekle', noIndex: true });
