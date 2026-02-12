@@ -12,7 +12,6 @@ interface UserProfile {
     email: string;
     role: string;
     company_name: string | null;
-    is_active: boolean;
     status?: string;
     created_at: string;
 }
@@ -104,7 +103,7 @@ export default function AdminUsers() {
             const result = await adminApi.suspendUser(pendingSuspendId, false);
             setUsers(prev =>
                 prev.map(u =>
-                    u.id === pendingSuspendId ? { ...u, status: 'suspended', is_active: false } : u
+                    u.id === pendingSuspendId ? { ...u, status: 'suspended' } : u
                 )
             );
             setDryRunModalOpen(false);
@@ -126,7 +125,7 @@ export default function AdminUsers() {
             await adminApi.activateUser(userId);
             setUsers(prev =>
                 prev.map(u =>
-                    u.id === userId ? { ...u, status: 'active', is_active: true } : u
+                    u.id === userId ? { ...u, status: 'active' } : u
                 )
             );
         } catch (err: any) {
@@ -137,7 +136,7 @@ export default function AdminUsers() {
         }
     };
 
-    const isUserSuspended = (user: UserProfile) => user.status === 'suspended' || user.is_active === false;
+    const isUserSuspended = (user: UserProfile) => user.status === 'suspended';
 
     const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 

@@ -551,7 +551,7 @@ async def login(request: Request, credentials: UserLogin, response: Response):
             }
         
         # ===== SOFT BAN: Askıya alınmış kullanıcı kontrolü =====
-        if user_data.get('status') == 'suspended' or user_data.get('is_active') == False:
+        if user_data.get('status') == 'suspended':
             log_security_event("SUSPENDED_LOGIN_ATTEMPT", {"email": email, "ip": client_ip}, "WARN")
             raise HTTPException(status_code=403, detail="Hesabınız askıya alınmıştır. Destek ile iletişime geçin.")
         
@@ -1647,7 +1647,7 @@ async def suspend_user(user_id: str, request: Request, dry_run: bool = False, us
             raise HTTPException(status_code=400, detail="Kendinizi askıya alamazsınız")
         
         # Mevcut durumu al
-        profile = supabase.table("users").select("id, email, is_active, user_role, status").eq("id", user_id).execute()
+        profile = supabase.table("users").select("id, email, user_role, status").eq("id", user_id).execute()
         if not profile.data:
             raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
         
@@ -1677,8 +1677,7 @@ async def suspend_user(user_id: str, request: Request, dry_run: bool = False, us
         
         # GERÇEK İŞLEM: Askıya al
         supabase.table("users").update({
-            "status": "suspended",
-            "is_active": False
+            "status": "suspended"
         }).eq("id", user_id).execute()
         
         # Audit log
@@ -1700,7 +1699,6 @@ async def suspend_user(user_id: str, request: Request, dry_run: bool = False, us
             "success": True,
             "user_id": user_id,
             "status": "suspended",
-            "is_active": False,
             "impact": impact,
             "message": "Kullanıcı askıya alındı"
         }
@@ -1722,13 +1720,12 @@ async def activate_user(user_id: str, request: Request, user: dict = Depends(req
         
         target_user = profile.data[0]
         
-        if target_user.get('status', 'active') == 'active' and target_user.get('is_active', True):
+        if target_user.get('status', 'active') == 'active':
             raise HTTPException(status_code=400, detail="Kullanıcı zaten aktif")
         
         # Aktifleştir
         supabase.table("users").update({
-            "status": "active",
-            "is_active": True
+            "status": "active"
         }).eq("id", user_id).execute()
         
         # Audit log
@@ -1746,7 +1743,6 @@ async def activate_user(user_id: str, request: Request, user: dict = Depends(req
             "success": True,
             "user_id": user_id,
             "status": "active",
-            "is_active": True,
             "message": "Kullanıcı aktifleştirildi"
         }
     except HTTPException:
@@ -1760,11 +1756,11 @@ async def activate_user(user_id: str, request: Request, user: dict = Depends(req
 @app.post("/api/admin/users/{user_id}/toggle-status")
 async def toggle_user_status_compat(user_id: str, request: Request, user: dict = Depends(require_admin)):
     """Geriye uyumluluk — suspend veya activate çağırır"""
-    profile = supabase.table("users").select("status, is_active").eq("id", user_id).execute()
+    profile = supabase.table("users").select("status").eq("id", user_id).execute()
     if not profile.data:
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
     current = profile.data[0]
-    if current.get('status') == 'suspended' or not current.get('is_active', True):
+    if current.get('status') == 'suspended':
         return await activate_user(user_id, request, user)
     else:
         return await suspend_user(user_id, request, dry_run=False, user=user)
