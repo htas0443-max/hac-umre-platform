@@ -303,6 +303,47 @@ export const adminApi = {
     const response = await api.get('/api/admin/uptime/chart', { params: { hours } });
     return response.data;
   },
+  // Rate Limits
+  getRateLimitStats: async () => {
+    const response = await api.get('/api/admin/rate-limits/stats');
+    return response.data;
+  },
+  getRateLimitLogs: async (params: Record<string, any>) => {
+    const response = await api.get('/api/admin/rate-limits/logs', { params });
+    return response.data;
+  },
+  // Email Queue
+  getEmailQueue: async (params: Record<string, any>) => {
+    const response = await api.get('/api/admin/email-queue', { params });
+    return response.data;
+  },
+  retryEmail: async (id: string) => {
+    const response = await api.post(`/api/admin/email-queue/${id}/retry`);
+    return response.data;
+  },
+  // Scheduled Actions
+  getScheduledActions: async (status: string = 'pending') => {
+    const response = await api.get('/api/admin/scheduled-actions', { params: { status_filter: status } });
+    return response.data;
+  },
+  createScheduledAction: async (data: any) => {
+    const response = await api.post('/api/admin/scheduled-actions', data);
+    return response.data;
+  },
+  cancelScheduledAction: async (id: string) => {
+    const response = await api.delete(`/api/admin/scheduled-actions/${id}`);
+    return response.data;
+  },
+  // Operator Performance
+  getOperatorPerformance: async () => {
+    const response = await api.get('/api/admin/operator-performance');
+    return response.data;
+  },
+  // System Info
+  getSystemInfo: async () => {
+    const response = await api.get('/api/admin/system-info');
+    return response.data;
+  },
   // Notifications
   getNotifications: async () => {
     const response = await api.get('/api/admin/notifications');

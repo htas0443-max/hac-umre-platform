@@ -29,6 +29,11 @@ export type Permission =
     | 'history'
     | 'feature_flags'
     | 'uptime'
+    | 'rate_limits'
+    | 'email_queue'
+    | 'scheduled_actions'
+    | 'operator_perf'
+    | 'system_info'
     | 'own_tours'
     | 'own_stats'
     | 'license_upload'
@@ -42,6 +47,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         'reviews', 'tickets', 'import', 'audit', 'analytics', 'files',
         'users', 'verification', 'notifications', 'settings', 'cms', 'reports',
         'history', 'feature_flags', 'uptime',
+        'rate_limits', 'email_queue', 'scheduled_actions', 'operator_perf', 'system_info',
         'own_tours', 'own_stats', 'license_upload', 'favorites', 'user_reviews',
     ],
     admin: [
@@ -49,6 +55,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         'reviews', 'tickets', 'import', 'audit', 'analytics', 'files',
         'users', 'verification', 'notifications', 'settings', 'cms', 'reports',
         'history', 'feature_flags', 'uptime',
+        'rate_limits', 'email_queue', 'scheduled_actions', 'operator_perf', 'system_info',
     ],
     support: [
         'tickets', 'reviews',

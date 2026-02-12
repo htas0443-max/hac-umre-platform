@@ -3339,6 +3339,478 @@ async def get_uptime_chart(hours: int = 24, user: dict = Depends(require_admin))
         raise HTTPException(status_code=500, detail="Chart verisi yüklenemedi")
 
 
+# ============================================
+# IN-APP NOTIFICATIONS (User Bell)
+# ============================================
+
+@app.get("/api/notifications/my")
+async def get_my_notifications(page: int = 0, user: dict = Depends(get_current_user)):
+    """Kullanıcının bildirimlerini listeler"""
+    try:
+        offset = page * 20
+        result = supabase.table("user_notifications").select(
+            "*", count="exact"
+        ).eq("user_id", user['id']).order(
+            "created_at", desc=True
+        ).range(offset, offset + 19).execute()
+
+        return {
+            "data": result.data or [],
+            "total": result.count or 0,
+            "page": page
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Bildirimler yüklenemedi")
+
+
+@app.get("/api/notifications/unread-count")
+async def get_unread_count(user: dict = Depends(get_current_user)):
+    """Okunmamış bildirim sayısı"""
+    try:
+        result = supabase.table("user_notifications").select(
+            "id", count="exact"
+        ).eq("user_id", user['id']).eq("is_read", False).execute()
+        return {"count": result.count or 0}
+    except Exception:
+        return {"count": 0}
+
+
+@app.patch("/api/notifications/{notif_id}/read")
+async def mark_notification_read(notif_id: str, user: dict = Depends(get_current_user)):
+    """Bildirimi okundu işaretle"""
+    try:
+        supabase.table("user_notifications").update(
+            {"is_read": True}
+        ).eq("id", notif_id).eq("user_id", user['id']).execute()
+        return {"success": True}
+    except Exception:
+        raise HTTPException(status_code=500, detail="Bildirim güncellenemedi")
+
+
+@app.patch("/api/notifications/mark-all-read")
+async def mark_all_read(user: dict = Depends(get_current_user)):
+    """Tüm bildirimleri okundu işaretle"""
+    try:
+        supabase.table("user_notifications").update(
+            {"is_read": True}
+        ).eq("user_id", user['id']).eq("is_read", False).execute()
+        return {"success": True}
+    except Exception:
+        raise HTTPException(status_code=500, detail="Bildirimler güncellenemedi")
+
+
+async def send_user_notification(user_id: str, title: str, message: str, notif_type: str = "info", action_url: str = None):
+    """Internal: kullanıcıya bildirim gönder"""
+    try:
+        supabase.table("user_notifications").insert({
+            "user_id": user_id,
+            "title": title,
+            "message": message,
+            "type": notif_type,
+            "action_url": action_url,
+        }).execute()
+    except Exception:
+        pass
+
+
+# ============================================
+# RATE LIMITING DASHBOARD
+# ============================================
+
+@app.get("/api/admin/rate-limits/stats")
+async def get_rate_limit_stats(user: dict = Depends(require_admin)):
+    """Rate limit istatistikleri"""
+    try:
+        now = datetime.utcnow()
+        day_ago = (now - timedelta(hours=24)).isoformat()
+
+        # Son 24 saat
+        result = supabase.table("rate_limit_logs").select(
+            "ip_address, blocked, endpoint", count="exact"
+        ).gte("created_at", day_ago).execute()
+
+        total = result.count or 0
+        blocked = sum(1 for r in (result.data or []) if r.get('blocked'))
+
+        # Unique blocked IPs
+        blocked_ips = list(set(
+            r['ip_address'] for r in (result.data or []) if r.get('blocked')
+        ))
+
+        # Top offenders
+        ip_counts: dict = {}
+        for r in (result.data or []):
+            if r.get('blocked'):
+                ip = r['ip_address']
+                ip_counts[ip] = ip_counts.get(ip, 0) + 1
+
+        top_offenders = sorted(ip_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+
+        return {
+            "total_requests_24h": total,
+            "blocked_24h": blocked,
+            "unique_blocked_ips": len(blocked_ips),
+            "top_offenders": [{"ip": ip, "count": count} for ip, count in top_offenders],
+            "block_rate": round((blocked / total * 100), 2) if total else 0,
+        }
+    except Exception as e:
+        log_security_event("RATE_LIMIT_STATS_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Rate limit istatistikleri yüklenemedi")
+
+
+@app.get("/api/admin/rate-limits/logs")
+async def get_rate_limit_logs(page: int = 0, blocked_only: bool = False, user: dict = Depends(require_admin)):
+    """Rate limit log listesi"""
+    try:
+        query = supabase.table("rate_limit_logs").select(
+            "*", count="exact"
+        ).order("created_at", desc=True)
+
+        if blocked_only:
+            query = query.eq("blocked", True)
+
+        offset = page * 50
+        query = query.range(offset, offset + 49)
+        result = query.execute()
+
+        return {
+            "data": result.data or [],
+            "total": result.count or 0,
+            "page": page
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Rate limit logları yüklenemedi")
+
+
+# ============================================
+# EMAIL QUEUE
+# ============================================
+
+async def queue_email(to_email: str, subject: str, body: str):
+    """Email kuyruğuna ekle"""
+    try:
+        supabase.table("email_queue").insert({
+            "to_email": to_email,
+            "subject": subject,
+            "body": body,
+            "status": "pending",
+        }).execute()
+    except Exception:
+        pass
+
+
+async def _process_email_queue():
+    """Background: pending emailleri gönder"""
+    try:
+        result = supabase.table("email_queue").select("*").eq(
+            "status", "pending"
+        ).order("created_at").limit(10).execute()
+
+        for email in (result.data or []):
+            try:
+                # Resend API kullan (mevcut config)
+                resend_key = os.getenv("RESEND_API_KEY", "")
+                if resend_key:
+                    async with httpx.AsyncClient(timeout=10.0) as client:
+                        resp = await client.post(
+                            "https://api.resend.com/emails",
+                            headers={"Authorization": f"Bearer {resend_key}"},
+                            json={
+                                "from": os.getenv("RESEND_FROM_EMAIL", "noreply@hacveumreturlari.net"),
+                                "to": email['to_email'],
+                                "subject": email['subject'],
+                                "html": email['body'],
+                            }
+                        )
+                        if resp.status_code == 200:
+                            supabase.table("email_queue").update({
+                                "status": "sent",
+                                "sent_at": datetime.utcnow().isoformat(),
+                            }).eq("id", email['id']).execute()
+                        else:
+                            raise Exception(f"Resend error: {resp.status_code}")
+                else:
+                    raise Exception("RESEND_API_KEY not set")
+            except Exception as e:
+                attempts = email.get('attempts', 0) + 1
+                new_status = "failed" if attempts >= email.get('max_attempts', 3) else "retry"
+                supabase.table("email_queue").update({
+                    "status": new_status,
+                    "attempts": attempts,
+                    "error_message": str(e)[:200],
+                }).eq("id", email['id']).execute()
+    except Exception:
+        pass
+
+
+@app.get("/api/admin/email-queue")
+async def get_email_queue(page: int = 0, status: str = None, user: dict = Depends(require_admin)):
+    """Email kuyruk durumu"""
+    try:
+        query = supabase.table("email_queue").select(
+            "*", count="exact"
+        ).order("created_at", desc=True)
+
+        if status:
+            query = query.eq("status", status)
+
+        offset = page * 20
+        query = query.range(offset, offset + 19)
+        result = query.execute()
+
+        # Stats
+        stats_result = supabase.table("email_queue").select("status", count="exact").execute()
+        status_counts: dict = {}
+        for r in (stats_result.data or []):
+            s = r.get('status', 'unknown')
+            status_counts[s] = status_counts.get(s, 0) + 1
+
+        return {
+            "data": result.data or [],
+            "total": result.count or 0,
+            "page": page,
+            "stats": status_counts,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Email kuyruk yüklenemedi")
+
+
+@app.post("/api/admin/email-queue/{email_id}/retry")
+async def retry_email(email_id: str, user: dict = Depends(require_admin)):
+    """Başarısız emaili tekrar dene"""
+    try:
+        supabase.table("email_queue").update({
+            "status": "pending",
+            "error_message": None,
+        }).eq("id", email_id).execute()
+        return {"success": True}
+    except Exception:
+        raise HTTPException(status_code=500, detail="Email yeniden kuyruğa eklenemedi")
+
+
+# ============================================
+# SCHEDULED ACTIONS
+# ============================================
+
+class ScheduledActionCreate(BaseModel):
+    action_type: str  # 'activate_user', 'publish_tour', 'send_notification'
+    entity: Optional[str] = None
+    entity_id: Optional[str] = None
+    payload: Optional[dict] = {}
+    scheduled_at: str  # ISO datetime
+
+
+@app.get("/api/admin/scheduled-actions")
+async def get_scheduled_actions(status_filter: str = "pending", user: dict = Depends(require_admin)):
+    """Zamanlanmış aksiyonları listele"""
+    try:
+        query = supabase.table("scheduled_actions").select(
+            "*", count="exact"
+        ).order("scheduled_at", desc=False)
+
+        if status_filter:
+            query = query.eq("status", status_filter)
+
+        result = query.limit(100).execute()
+
+        return {
+            "data": result.data or [],
+            "total": result.count or 0,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Zamanlanmış aksiyonlar yüklenemedi")
+
+
+@app.post("/api/admin/scheduled-actions")
+async def create_scheduled_action(data: ScheduledActionCreate, request: Request, user: dict = Depends(require_admin)):
+    """Yeni zamanlanmış aksiyon oluştur"""
+    try:
+        result = supabase.table("scheduled_actions").insert({
+            "action_type": data.action_type,
+            "entity": data.entity,
+            "entity_id": data.entity_id,
+            "payload": data.payload,
+            "scheduled_at": data.scheduled_at,
+            "created_by": user['id'],
+        }).execute()
+
+        await write_audit_log(
+            request=request,
+            user_id=user['id'],
+            role=user.get('user_role', 'admin'),
+            action='scheduled_action_created',
+            entity=data.entity,
+            entity_id=data.entity_id,
+            details={'action_type': data.action_type, 'scheduled_at': data.scheduled_at}
+        )
+
+        return {"success": True, "data": result.data[0] if result.data else None}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Zamanlanmış aksiyon oluşturulamadı")
+
+
+@app.delete("/api/admin/scheduled-actions/{action_id}")
+async def cancel_scheduled_action(action_id: str, user: dict = Depends(require_admin)):
+    """Zamanlanmış aksiyonu iptal et"""
+    try:
+        supabase.table("scheduled_actions").update({
+            "status": "cancelled"
+        }).eq("id", action_id).eq("status", "pending").execute()
+        return {"success": True}
+    except Exception:
+        raise HTTPException(status_code=500, detail="Aksiyon iptal edilemedi")
+
+
+async def _execute_scheduled_actions():
+    """Background: zamanı gelen aksiyonları çalıştır"""
+    try:
+        now = datetime.utcnow().isoformat()
+        result = supabase.table("scheduled_actions").select("*").eq(
+            "status", "pending"
+        ).lte("scheduled_at", now).limit(10).execute()
+
+        for action in (result.data or []):
+            try:
+                action_type = action['action_type']
+
+                if action_type == 'activate_user' and action.get('entity_id'):
+                    supabase.table("users").update({"status": "active"}).eq("id", action['entity_id']).execute()
+                    await send_user_notification(action['entity_id'], "Hesap Aktif", "Hesabınız aktifleştirildi.", "success")
+
+                elif action_type == 'suspend_user' and action.get('entity_id'):
+                    supabase.table("users").update({"status": "suspended"}).eq("id", action['entity_id']).execute()
+
+                elif action_type == 'send_notification' and action.get('payload'):
+                    p = action['payload']
+                    if p.get('user_id'):
+                        await send_user_notification(p['user_id'], p.get('title', ''), p.get('message', ''), p.get('type', 'info'))
+
+                supabase.table("scheduled_actions").update({
+                    "status": "executed",
+                    "executed_at": datetime.utcnow().isoformat(),
+                }).eq("id", action['id']).execute()
+
+            except Exception as e:
+                supabase.table("scheduled_actions").update({
+                    "status": "failed",
+                    "error_message": str(e)[:200],
+                }).eq("id", action['id']).execute()
+    except Exception:
+        pass
+
+
+# ============================================
+# OPERATOR PERFORMANCE STATS
+# ============================================
+
+@app.get("/api/admin/operator-performance")
+async def get_operator_performance(user: dict = Depends(require_admin)):
+    """Operatör performans metrikleri"""
+    try:
+        # Tüm operatörleri al
+        operators = supabase.table("users").select(
+            "id, email, company_name, created_at"
+        ).eq("user_role", "operator").execute()
+
+        performance = []
+        for op in (operators.data or []):
+            op_id = op['id']
+
+            # Turları
+            tours = supabase.table("tours").select("id, status", count="exact").eq("user_id", op_id).execute()
+            total_tours = tours.count or 0
+            approved = sum(1 for t in (tours.data or []) if t.get('status') == 'approved')
+            rejected = sum(1 for t in (tours.data or []) if t.get('status') == 'rejected')
+
+            # Ortalama rating (reviews tablosu varsa)
+            avg_rating = 0
+            try:
+                reviews = supabase.table("reviews").select("rating").eq("operator_id", op_id).execute()
+                if reviews.data:
+                    ratings = [r['rating'] for r in reviews.data if r.get('rating')]
+                    avg_rating = round(sum(ratings) / len(ratings), 1) if ratings else 0
+            except Exception:
+                pass
+
+            performance.append({
+                "id": op_id,
+                "email": op['email'],
+                "company_name": op.get('company_name', ''),
+                "total_tours": total_tours,
+                "approved_tours": approved,
+                "rejected_tours": rejected,
+                "approval_rate": round((approved / total_tours * 100), 1) if total_tours else 0,
+                "avg_rating": avg_rating,
+                "joined_at": op['created_at'],
+            })
+
+        # Sırala: onay oranına göre
+        performance.sort(key=lambda x: x['approval_rate'], reverse=True)
+
+        return {"operators": performance}
+    except Exception as e:
+        log_security_event("OPERATOR_PERF_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Operatör performansı yüklenemedi")
+
+
+# ============================================
+# SYSTEM INFO (DB Backup placeholder)
+# ============================================
+
+@app.get("/api/admin/system-info")
+async def get_system_info(user: dict = Depends(require_admin)):
+    """Sistem bilgisi"""
+    try:
+        # Table row counts
+        tables = {}
+        for table_name in ['users', 'tours', 'reviews', 'audit_logs', 'uptime_logs', 'email_queue']:
+            try:
+                r = supabase.table(table_name).select("id", count="exact").limit(0).execute()
+                tables[table_name] = r.count or 0
+            except Exception:
+                tables[table_name] = -1
+
+        return {
+            "tables": tables,
+            "supabase_url": os.getenv("SUPABASE_URL", "").split("//")[-1] if os.getenv("SUPABASE_URL") else "N/A",
+            "environment": os.getenv("ENVIRONMENT", "development"),
+            "server_time": datetime.utcnow().isoformat(),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Sistem bilgisi yüklenemedi")
+
+
+# ============================================
+# BACKGROUND TASK UPDATES — add email + scheduled to startup
+# ============================================
+
+async def _combined_scheduler():
+    """Combined background scheduler: email queue + scheduled actions (every 30s)"""
+    while True:
+        try:
+            await asyncio.sleep(30)
+            await _process_email_queue()
+            await _execute_scheduled_actions()
+        except asyncio.CancelledError:
+            break
+        except Exception:
+            pass
+
+_combined_task = None
+
+@app.on_event("startup")
+async def start_combined_scheduler():
+    global _combined_task
+    _combined_task = asyncio.create_task(_combined_scheduler())
+
+
+@app.on_event("shutdown")
+async def stop_combined_scheduler():
+    global _combined_task
+    if _combined_task:
+        _combined_task.cancel()
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)

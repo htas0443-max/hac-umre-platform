@@ -31,6 +31,11 @@ const adminMenuItems: MenuItem[] = [
     { path: '/admin/history', label: 'İşlem Geçmişi', icon: '🕐', requiredPermission: 'history' },
     { path: '/admin/feature-flags', label: 'Feature Flags', icon: '🚩', requiredPermission: 'feature_flags' },
     { path: '/admin/uptime', label: 'Uptime & SLA', icon: '📊', requiredPermission: 'uptime' },
+    { path: '/admin/rate-limits', label: 'Rate Limiting', icon: '🔒', requiredPermission: 'rate_limits' },
+    { path: '/admin/email-queue', label: 'Email Kuyruk', icon: '📧', requiredPermission: 'email_queue' },
+    { path: '/admin/scheduled-actions', label: 'Zamanlanmış', icon: '🗓️', requiredPermission: 'scheduled_actions' },
+    { path: '/admin/operator-performance', label: 'Operatör Performans', icon: '🏆', requiredPermission: 'operator_perf' },
+    { path: '/admin/system-info', label: 'Sistem Bilgisi', icon: '💾', requiredPermission: 'system_info' },
     { path: '/tours', label: 'Tüm Turlar (Site)', icon: '🌍' },
 ];
 

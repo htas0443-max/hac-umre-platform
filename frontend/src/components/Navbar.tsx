@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Globe, RefreshCw, BookOpen, BarChart3, CheckCircle, FolderUp, Heart } from 'lucide-react';
 import { useAuth } from '../AuthContext';
 import { useFavorites } from '../hooks/useFavorites';
+import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -107,6 +108,7 @@ export default function Navbar() {
         <div className="navbar-actions navbar-desktop">
           {user ? (
             <div className="navbar-user">
+              <NotificationBell />
               <Link to="/profile" className="navbar-link" data-testid="profile-link">
                 Profilim
               </Link>
