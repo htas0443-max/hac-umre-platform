@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Search, Shield, ShieldOff, Filter } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { adminApi } from '../api';
 import { useSEO } from '../hooks/useSEO';
 import Breadcrumb from '../components/Breadcrumb';
 
@@ -74,23 +75,20 @@ export default function AdminUsers() {
         loadUsers();
     }, [loadUsers]);
 
-    const toggleUserStatus = async (userId: string, currentActive: boolean) => {
+    const toggleUserStatus = async (userId: string) => {
         try {
             setTogglingId(userId);
-            const { error } = await supabase
-                .from('profiles')
-                .update({ is_active: !currentActive })
-                .eq('id', userId);
-
-            if (error) throw error;
+            const result = await adminApi.toggleUserStatus(userId);
 
             setUsers(prev =>
                 prev.map(u =>
-                    u.id === userId ? { ...u, is_active: !currentActive } : u
+                    u.id === userId ? { ...u, is_active: result.is_active } : u
                 )
             );
-        } catch (err) {
-            console.error('Kullanıcı durumu güncellenemedi:', err);
+        } catch (err: any) {
+            const msg = err?.response?.data?.detail || 'Kullanıcı durumu güncellenemedi';
+            alert(msg);
+            console.error(msg, err);
         } finally {
             setTogglingId(null);
         }
@@ -243,7 +241,7 @@ export default function AdminUsers() {
                                                 <motion.button
                                                     whileHover={{ scale: 1.05 }}
                                                     whileTap={{ scale: 0.95 }}
-                                                    onClick={() => toggleUserStatus(user.id, user.is_active !== false)}
+                                                    onClick={() => toggleUserStatus(user.id)}
                                                     disabled={togglingId === user.id}
                                                     style={{
                                                         display: 'inline-flex',

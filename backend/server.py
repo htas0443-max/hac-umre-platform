@@ -250,6 +250,12 @@ def require_admin(user: dict = Depends(get_current_user)) -> dict:
         raise HTTPException(status_code=403, detail="Admin yetkisi gerekli")
     return user
 
+def require_super_admin(user: dict = Depends(get_current_user)) -> dict:
+    """Sadece super_admin yetkisi gerektirir (kritik ayarlar için)"""
+    if user.get("user_role") != "super_admin":
+        raise HTTPException(status_code=403, detail="Bu işlem için super admin yetkisi gerekli")
+    return user
+
 def require_operator(user: dict = Depends(get_current_user)) -> dict:
     """Operator yetkisi gerektirir"""
     if user.get("user_role") not in ["operator", "admin", "super_admin"]:
@@ -384,6 +390,15 @@ class ChatRequest(BaseModel):
     message: str
     context_tour_ids: Optional[List[str]] = None
     ai_provider: str = Field(default="anthropic")
+
+# Admin Models
+class NotificationCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    message: str = Field(min_length=1, max_length=2000)
+    target_role: str = Field(default="all")
+
+class SettingsUpdate(BaseModel):
+    settings: Dict[str, Any]
 
 # Routes
 @app.get("/api/health")
@@ -1556,7 +1571,7 @@ async def get_pending_licenses(user: dict = Depends(require_admin)):
         raise HTTPException(status_code=500, detail="Liste alınırken bir hata oluştu")
 
 @app.post("/api/admin/licenses/verify/{operator_id}")
-async def verify_license(operator_id: str, verified: bool, license_number: str = "", user: dict = Depends(require_admin)):
+async def verify_license(operator_id: str, verified: bool, license_number: str = "", request: Request = None, user: dict = Depends(require_admin)):
     """Admin operator license'ını onaylar veya reddeder"""
     try:
         response = supabase.rpc('verify_operator_license', {
@@ -1566,10 +1581,200 @@ async def verify_license(operator_id: str, verified: bool, license_number: str =
             'license_number_param': license_number if license_number else None
         }).execute()
         
+        # Audit log
+        await write_audit_log(
+            request=request,
+            user_id=user['id'],
+            role=user.get('user_role', 'admin'),
+            action='license_verified' if verified else 'license_rejected',
+            entity='operator_license',
+            entity_id=operator_id,
+            details={'verified': verified, 'license_number': license_number}
+        )
+        
         return response.data
     except Exception as e:
         log_security_event("LICENSE_VERIFY_ERROR", {"error": str(e)}, "ERROR")
         raise HTTPException(status_code=400, detail="Lisans doğrulanırken bir hata oluştu")
+
+
+# ============================================
+# ADMIN: USER MANAGEMENT
+# ============================================
+
+@app.post("/api/admin/users/{user_id}/toggle-status")
+async def toggle_user_status(user_id: str, request: Request, user: dict = Depends(require_admin)):
+    """Kullanıcıyı banla veya ban kaldır (admin only)"""
+    try:
+        # Kendi kendini banlama koruması
+        if user_id == user['id']:
+            raise HTTPException(status_code=400, detail="Kendinizi yasaklayamazsınız")
+        
+        # Mevcut durumu al
+        profile = supabase.table("profiles").select("id, email, is_active, user_role").eq("id", user_id).execute()
+        if not profile.data:
+            raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+        
+        target_user = profile.data[0]
+        
+        # Admin, admin'i banlayamaz (sadece super_admin yapabilir)
+        if target_user.get('user_role') in ['admin', 'super_admin'] and user.get('user_role') != 'super_admin':
+            raise HTTPException(status_code=403, detail="Admin kullanıcıları sadece super admin yasaklayabilir")
+        
+        new_status = not target_user.get('is_active', True)
+        
+        # Güncelle
+        supabase.table("profiles").update({"is_active": new_status}).eq("id", user_id).execute()
+        
+        # Audit log
+        await write_audit_log(
+            request=request,
+            user_id=user['id'],
+            role=user.get('user_role', 'admin'),
+            action='user_banned' if not new_status else 'user_unbanned',
+            entity='user',
+            entity_id=user_id,
+            details={'target_email': target_user.get('email'), 'new_status': new_status}
+        )
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "is_active": new_status,
+            "message": f"Kullanıcı {'aktif edildi' if new_status else 'yasaklandı'}"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_security_event("USER_TOGGLE_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Kullanıcı durumu güncellenirken bir hata oluştu")
+
+
+# ============================================
+# ADMIN: PLATFORM SETTINGS
+# ============================================
+
+CRITICAL_SETTINGS = ['maintenance_mode', 'registration_enabled', 'auto_approve_tours']
+
+@app.get("/api/admin/settings")
+async def get_settings(user: dict = Depends(require_admin)):
+    """Platform ayarlarını getirir (admin only)"""
+    try:
+        result = supabase.table("platform_settings").select("key, value").execute()
+        settings = {}
+        if result.data:
+            for row in result.data:
+                settings[row['key']] = row['value']
+        return {"settings": settings}
+    except Exception as e:
+        log_security_event("SETTINGS_GET_ERROR", {"error": str(e)}, "ERROR")
+        return {"settings": {}}
+
+@app.put("/api/admin/settings")
+async def update_settings(data: SettingsUpdate, request: Request, user: dict = Depends(require_admin)):
+    """Platform ayarlarını günceller. Kritik ayarlar super_admin gerektirir."""
+    try:
+        # Kritik ayarlar kontrolü
+        for key in data.settings:
+            if key in CRITICAL_SETTINGS and user.get('user_role') != 'super_admin':
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"'{key}' ayarını değiştirmek için super admin yetkisi gerekli"
+                )
+        
+        # Her ayarı upsert et
+        for key, value in data.settings.items():
+            supabase.table("platform_settings").upsert(
+                {"key": key, "value": value},
+                on_conflict="key"
+            ).execute()
+        
+        # Audit log
+        await write_audit_log(
+            request=request,
+            user_id=user['id'],
+            role=user.get('user_role', 'admin'),
+            action='settings_updated',
+            entity='platform_settings',
+            details={'changed_keys': list(data.settings.keys())}
+        )
+        
+        return {"success": True, "message": "Ayarlar kaydedildi"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_security_event("SETTINGS_UPDATE_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Ayarlar kaydedilirken bir hata oluştu")
+
+
+# ============================================
+# ADMIN: NOTIFICATIONS / ANNOUNCEMENTS
+# ============================================
+
+@app.get("/api/admin/notifications")
+async def get_notifications(user: dict = Depends(require_admin)):
+    """Duyuruları listeler (admin only)"""
+    try:
+        result = supabase.table("notifications").select("*").order(
+            "created_at", desc=True
+        ).limit(50).execute()
+        return {"notifications": result.data or []}
+    except Exception as e:
+        log_security_event("NOTIFICATIONS_GET_ERROR", {"error": str(e)}, "ERROR")
+        return {"notifications": []}
+
+@app.post("/api/admin/notifications")
+async def create_notification(data: NotificationCreate, request: Request, user: dict = Depends(require_admin)):
+    """Yeni duyuru oluşturur (admin only)"""
+    try:
+        # target_role doğrulama
+        if data.target_role not in ['all', 'user', 'operator']:
+            raise HTTPException(status_code=400, detail="Geçersiz hedef kitle")
+        
+        result = supabase.table("notifications").insert({
+            "title": data.title,
+            "message": data.message,
+            "target_role": data.target_role,
+            "created_by": user['id'],
+        }).execute()
+        
+        # Audit log
+        await write_audit_log(
+            request=request,
+            user_id=user['id'],
+            role=user.get('user_role', 'admin'),
+            action='notification_created',
+            entity='notification',
+            details={'title': data.title, 'target_role': data.target_role}
+        )
+        
+        return {"success": True, "notification": result.data[0] if result.data else None}
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_security_event("NOTIFICATION_CREATE_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Duyuru oluşturulurken bir hata oluştu")
+
+@app.delete("/api/admin/notifications/{notification_id}")
+async def delete_notification(notification_id: str, request: Request, user: dict = Depends(require_admin)):
+    """Duyuru siler (admin only)"""
+    try:
+        supabase.table("notifications").delete().eq("id", notification_id).execute()
+        
+        # Audit log
+        await write_audit_log(
+            request=request,
+            user_id=user['id'],
+            role=user.get('user_role', 'admin'),
+            action='notification_deleted',
+            entity='notification',
+            entity_id=notification_id
+        )
+        
+        return {"success": True, "message": "Duyuru silindi"}
+    except Exception as e:
+        log_security_event("NOTIFICATION_DELETE_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Duyuru silinirken bir hata oluştu")
 
 # ===== ADMIN FILE MANAGER ROUTES =====
 # Supabase Storage ile dosya yönetimi (admin-documents bucket)

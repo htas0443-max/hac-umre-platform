@@ -236,13 +236,44 @@ export const adminApi = {
     const response = await api.get('/api/admin/agency-analytics');
     return response.data;
   },
+  // User management
+  toggleUserStatus: async (userId: string) => {
+    const response = await api.post(`/api/admin/users/${userId}/toggle-status`);
+    return response.data;
+  },
   // License verification
   verifyLicense: async (operatorId: string) => {
-    const response = await api.post(`/api/admin/licenses/verify/${operatorId}`);
+    const response = await api.post(`/api/admin/licenses/verify/${operatorId}`, null, {
+      params: { verified: true }
+    });
     return response.data;
   },
   rejectLicense: async (operatorId: string) => {
-    const response = await api.post(`/api/admin/licenses/verify/${operatorId}`, { action: 'reject' });
+    const response = await api.post(`/api/admin/licenses/verify/${operatorId}`, null, {
+      params: { verified: false }
+    });
+    return response.data;
+  },
+  // Settings
+  getSettings: async () => {
+    const response = await api.get('/api/admin/settings');
+    return response.data;
+  },
+  updateSettings: async (settings: Record<string, any>) => {
+    const response = await api.put('/api/admin/settings', { settings });
+    return response.data;
+  },
+  // Notifications
+  getNotifications: async () => {
+    const response = await api.get('/api/admin/notifications');
+    return response.data;
+  },
+  createNotification: async (data: { title: string; message: string; target_role: string }) => {
+    const response = await api.post('/api/admin/notifications', data);
+    return response.data;
+  },
+  deleteNotification: async (id: string) => {
+    const response = await api.delete(`/api/admin/notifications/${id}`);
     return response.data;
   },
 };

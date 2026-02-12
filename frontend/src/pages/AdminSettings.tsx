@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Save, ToggleLeft, ToggleRight } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { adminApi } from '../api';
 import { useSEO } from '../hooks/useSEO';
 import Breadcrumb from '../components/Breadcrumb';
 
@@ -38,23 +38,13 @@ export default function AdminSettings() {
     const loadSettings = useCallback(async () => {
         try {
             setLoading(true);
-            const { data, error } = await supabase
-                .from('platform_settings')
-                .select('key, value')
-                .limit(100);
+            const result = await adminApi.getSettings();
 
-            if (error) throw error;
-
-            if (data && data.length > 0) {
-                const loaded: Record<string, any> = {};
-                data.forEach((row: { key: string; value: any }) => {
-                    loaded[row.key] = row.value;
-                });
-                setSettings(prev => ({ ...prev, ...loaded }));
+            if (result.settings && Object.keys(result.settings).length > 0) {
+                setSettings(prev => ({ ...prev, ...result.settings }));
             }
         } catch (err) {
             console.error('Ayarlar yüklenemedi:', err);
-            // Table may not exist, use defaults
         } finally {
             setLoading(false);
         }
@@ -67,18 +57,14 @@ export default function AdminSettings() {
     const handleSave = async () => {
         try {
             setSaving(true);
-            const entries = Object.entries(settings);
-
-            for (const [key, value] of entries) {
-                await supabase
-                    .from('platform_settings')
-                    .upsert({ key, value }, { onConflict: 'key' });
-            }
+            await adminApi.updateSettings(settings as unknown as Record<string, any>);
 
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
-        } catch (err) {
-            console.error('Ayarlar kaydedilemedi:', err);
+        } catch (err: any) {
+            const msg = err?.response?.data?.detail || 'Ayarlar kaydedilemedi';
+            alert(msg);
+            console.error(msg, err);
         } finally {
             setSaving(false);
         }

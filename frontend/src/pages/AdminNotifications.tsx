@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Send, Trash2, Users, Building2 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { adminApi } from '../api';
 import { useSEO } from '../hooks/useSEO';
 import Breadcrumb from '../components/Breadcrumb';
 
@@ -32,17 +32,10 @@ export default function AdminNotifications() {
     const loadNotifications = useCallback(async () => {
         try {
             setLoading(true);
-            const { data, error } = await supabase
-                .from('notifications')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(50);
-
-            if (error) throw error;
-            setNotifications(data || []);
+            const result = await adminApi.getNotifications();
+            setNotifications(result.notifications || []);
         } catch (err) {
             console.error('Bildirimler yüklenemedi:', err);
-            // Table might not exist yet - that's fine
             setNotifications([]);
         } finally {
             setLoading(false);
@@ -57,21 +50,19 @@ export default function AdminNotifications() {
         if (!form.title.trim() || !form.message.trim()) return;
         try {
             setSending(true);
-            const { error } = await supabase
-                .from('notifications')
-                .insert({
-                    title: form.title.trim(),
-                    message: form.message.trim(),
-                    target_role: form.target_role,
-                });
-
-            if (error) throw error;
+            await adminApi.createNotification({
+                title: form.title.trim(),
+                message: form.message.trim(),
+                target_role: form.target_role,
+            });
 
             setForm({ title: '', message: '', target_role: 'all' });
             setShowForm(false);
             await loadNotifications();
-        } catch (err) {
-            console.error('Bildirim gönderilemedi:', err);
+        } catch (err: any) {
+            const msg = err?.response?.data?.detail || 'Bildirim gönderilemedi';
+            alert(msg);
+            console.error(msg, err);
         } finally {
             setSending(false);
         }
@@ -79,7 +70,7 @@ export default function AdminNotifications() {
 
     const handleDelete = async (id: string) => {
         try {
-            await supabase.from('notifications').delete().eq('id', id);
+            await adminApi.deleteNotification(id);
             setNotifications(prev => prev.filter(n => n.id !== id));
         } catch (err) {
             console.error('Bildirim silinemedi:', err);
