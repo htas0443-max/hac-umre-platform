@@ -290,6 +290,19 @@ export const adminApi = {
     const response = await api.patch(`/api/admin/feature-flags/${key}`);
     return response.data;
   },
+  // Uptime & SLA
+  getUptimeStats: async () => {
+    const response = await api.get('/api/admin/uptime/stats');
+    return response.data;
+  },
+  getUptimeLogs: async (params: Record<string, string | number>) => {
+    const response = await api.get('/api/admin/uptime/logs', { params });
+    return response.data;
+  },
+  getUptimeChart: async (hours: number = 24) => {
+    const response = await api.get('/api/admin/uptime/chart', { params: { hours } });
+    return response.data;
+  },
   // Notifications
   getNotifications: async () => {
     const response = await api.get('/api/admin/notifications');

@@ -30,6 +30,7 @@ const adminMenuItems: MenuItem[] = [
     { path: '/admin/cms', label: 'CMS', icon: '📝', requiredPermission: 'cms' },
     { path: '/admin/history', label: 'İşlem Geçmişi', icon: '🕐', requiredPermission: 'history' },
     { path: '/admin/feature-flags', label: 'Feature Flags', icon: '🚩', requiredPermission: 'feature_flags' },
+    { path: '/admin/uptime', label: 'Uptime & SLA', icon: '📊', requiredPermission: 'uptime' },
     { path: '/tours', label: 'Tüm Turlar (Site)', icon: '🌍' },
 ];
 

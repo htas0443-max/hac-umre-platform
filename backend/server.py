@@ -14,6 +14,7 @@ load_dotenv()  # .env dosyasını yükle — CORS_ORIGINS, ENVIRONMENT vb. için
 from supabase import create_client, Client
 import csv
 import io
+import asyncio
 from ai_service import AIService
 from security import (
     limiter, 
@@ -3086,6 +3087,257 @@ async def import_csv(file: UploadFile = File(...), user: dict = Depends(require_
     except Exception as e:
         log_security_event("CSV_IMPORT_ERROR", {"error": str(e)}, "ERROR")
         raise HTTPException(status_code=500, detail="CSV import esnasında bir hata oluştu")
+
+# ============================================
+# SLA MONITORING + UPTIME ALERTS
+# ============================================
+
+import time as _time
+import httpx
+
+ALERT_WEBHOOK_URL = os.getenv("ALERT_WEBHOOK_URL", "")  # Telegram/Slack webhook
+ALERT_EMAIL = os.getenv("ALERT_EMAIL", "")  # Email for critical alerts
+HEALTH_CHECK_INTERVAL = 60  # seconds
+
+_consecutive_failures = 0
+
+
+@app.get("/health")
+async def health_check():
+    """Public health endpoint — UptimeRobot / BetterStack / Pingdom uyumlu"""
+    start = _time.time()
+    db_ok = False
+    auth_ok = False
+    error_msg = None
+
+    try:
+        # DB check
+        result = supabase.table("users").select("id").limit(1).execute()
+        db_ok = True
+    except Exception as e:
+        error_msg = f"DB: {str(e)[:100]}"
+
+    try:
+        # Auth check — Supabase auth service
+        supabase.auth.get_session()
+        auth_ok = True
+    except Exception as e:
+        if not error_msg:
+            error_msg = f"Auth: {str(e)[:100]}"
+
+    response_time = int((_time.time() - start) * 1000)
+    status = "ok" if db_ok and auth_ok else "error"
+
+    return {
+        "status": status,
+        "timestamp": datetime.utcnow().isoformat(),
+        "db": db_ok,
+        "auth": auth_ok,
+        "response_time_ms": response_time,
+        "error": error_msg
+    }
+
+
+async def _run_health_check_and_log():
+    """Internal health check — logs result to uptime_logs"""
+    global _consecutive_failures
+    start = _time.time()
+    db_ok = False
+    auth_ok = False
+    error_msg = None
+
+    try:
+        result = supabase.table("users").select("id").limit(1).execute()
+        db_ok = True
+    except Exception as e:
+        error_msg = f"DB: {str(e)[:100]}"
+
+    try:
+        supabase.auth.get_session()
+        auth_ok = True
+    except Exception as e:
+        if not error_msg:
+            error_msg = f"Auth: {str(e)[:100]}"
+
+    response_time = int((_time.time() - start) * 1000)
+    status = "ok" if db_ok and auth_ok else "error"
+
+    if status == "ok":
+        _consecutive_failures = 0
+    else:
+        _consecutive_failures += 1
+
+    # Log to DB
+    try:
+        supabase.table("uptime_logs").insert({
+            "status": status,
+            "response_time_ms": response_time,
+            "db_ok": db_ok,
+            "auth_ok": auth_ok,
+            "error_message": error_msg,
+            "consecutive_failures": _consecutive_failures,
+        }).execute()
+    except Exception:
+        pass
+
+    # Alert logic
+    if _consecutive_failures == 2:
+        await _send_alert("WARNING", f"⚠️ 2 ardışık başarısız check! Son hata: {error_msg}")
+    elif _consecutive_failures >= 5:
+        await _send_alert("CRITICAL", f"🚨 CRITICAL: {_consecutive_failures} ardışık başarısız! {error_msg}")
+
+
+async def _send_alert(level: str, message: str):
+    """Telegram/Slack webhook + log"""
+    log_security_event(f"UPTIME_ALERT_{level}", {"message": message}, "ERROR")
+
+    if ALERT_WEBHOOK_URL:
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                # Telegram format
+                if "telegram" in ALERT_WEBHOOK_URL.lower():
+                    await client.post(ALERT_WEBHOOK_URL, json={
+                        "text": f"[{level}] Hac & Umre Platform\n{message}\n{datetime.utcnow().isoformat()}"
+                    })
+                # Slack format
+                else:
+                    await client.post(ALERT_WEBHOOK_URL, json={
+                        "text": f"[{level}] Hac & Umre Platform: {message}"
+                    })
+        except Exception as e:
+            log_security_event("ALERT_SEND_ERROR", {"error": str(e)}, "ERROR")
+
+
+async def _uptime_scheduler():
+    """Background task — runs health check every 60 seconds"""
+    while True:
+        try:
+            await asyncio.sleep(HEALTH_CHECK_INTERVAL)
+            await _run_health_check_and_log()
+        except asyncio.CancelledError:
+            break
+        except Exception:
+            pass
+
+_uptime_task = None
+
+@app.on_event("startup")
+async def start_uptime_monitor():
+    """Start background uptime monitor on app startup"""
+    global _uptime_task
+    _uptime_task = asyncio.create_task(_uptime_scheduler())
+
+
+@app.on_event("shutdown")
+async def stop_uptime_monitor():
+    """Cancel background uptime monitor on shutdown"""
+    global _uptime_task
+    if _uptime_task:
+        _uptime_task.cancel()
+
+
+@app.get("/api/admin/uptime/stats")
+async def get_uptime_stats(user: dict = Depends(require_admin)):
+    """SLA metrikleri: uptime %, avg response time, consecutive failures"""
+    try:
+        now = datetime.utcnow()
+
+        # Son 24 saat
+        day_ago = (now - timedelta(hours=24)).isoformat()
+        day_result = supabase.table("uptime_logs").select(
+            "status, response_time_ms", count="exact"
+        ).gte("checked_at", day_ago).execute()
+
+        day_total = day_result.count or 0
+        day_ok = sum(1 for r in (day_result.data or []) if r['status'] == 'ok')
+        day_avg_rt = 0
+        if day_result.data:
+            rts = [r['response_time_ms'] for r in day_result.data if r.get('response_time_ms')]
+            day_avg_rt = int(sum(rts) / len(rts)) if rts else 0
+
+        # Son 7 gün
+        week_ago = (now - timedelta(days=7)).isoformat()
+        week_result = supabase.table("uptime_logs").select(
+            "status, response_time_ms", count="exact"
+        ).gte("checked_at", week_ago).execute()
+
+        week_total = week_result.count or 0
+        week_ok = sum(1 for r in (week_result.data or []) if r['status'] == 'ok')
+        week_avg_rt = 0
+        if week_result.data:
+            rts = [r['response_time_ms'] for r in week_result.data if r.get('response_time_ms')]
+            week_avg_rt = int(sum(rts) / len(rts)) if rts else 0
+
+        # Son 30 gün
+        month_ago = (now - timedelta(days=30)).isoformat()
+        month_result = supabase.table("uptime_logs").select(
+            "status", count="exact"
+        ).gte("checked_at", month_ago).execute()
+
+        month_total = month_result.count or 0
+        month_ok = sum(1 for r in (month_result.data or []) if r['status'] == 'ok')
+
+        return {
+            "uptime_24h": round((day_ok / day_total * 100), 2) if day_total else 100,
+            "uptime_7d": round((week_ok / week_total * 100), 2) if week_total else 100,
+            "uptime_30d": round((month_ok / month_total * 100), 2) if month_total else 100,
+            "avg_response_24h": day_avg_rt,
+            "avg_response_7d": week_avg_rt,
+            "total_checks_24h": day_total,
+            "total_checks_7d": week_total,
+            "total_checks_30d": month_total,
+            "consecutive_failures": _consecutive_failures,
+        }
+    except Exception as e:
+        log_security_event("UPTIME_STATS_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Uptime istatistikleri yüklenemedi")
+
+
+@app.get("/api/admin/uptime/logs")
+async def get_uptime_logs(
+    page: int = 0,
+    page_size: int = 50,
+    status_filter: str = None,
+    user: dict = Depends(require_admin)
+):
+    """Son uptime check logları (paginated)"""
+    try:
+        query = supabase.table("uptime_logs").select(
+            "*", count="exact"
+        ).order("checked_at", desc=True)
+
+        if status_filter:
+            query = query.eq("status", status_filter)
+
+        offset = page * page_size
+        query = query.range(offset, offset + page_size - 1)
+        result = query.execute()
+
+        return {
+            "data": result.data or [],
+            "total": result.count or 0,
+            "page": page,
+            "page_size": page_size
+        }
+    except Exception as e:
+        log_security_event("UPTIME_LOGS_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Uptime logları yüklenemedi")
+
+
+@app.get("/api/admin/uptime/chart")
+async def get_uptime_chart(hours: int = 24, user: dict = Depends(require_admin)):
+    """Response time chart data (last N hours)"""
+    try:
+        since = (datetime.utcnow() - timedelta(hours=hours)).isoformat()
+        result = supabase.table("uptime_logs").select(
+            "checked_at, status, response_time_ms"
+        ).gte("checked_at", since).order("checked_at", desc=False).execute()
+
+        return {"data": result.data or []}
+    except Exception as e:
+        log_security_event("UPTIME_CHART_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Chart verisi yüklenemedi")
+
 
 if __name__ == "__main__":
     import uvicorn
