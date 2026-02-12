@@ -1647,7 +1647,7 @@ async def suspend_user(user_id: str, request: Request, dry_run: bool = False, us
             raise HTTPException(status_code=400, detail="Kendinizi askıya alamazsınız")
         
         # Mevcut durumu al
-        profile = supabase.table("profiles").select("id, email, is_active, user_role, status").eq("id", user_id).execute()
+        profile = supabase.table("users").select("id, email, is_active, user_role, status").eq("id", user_id).execute()
         if not profile.data:
             raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
         
@@ -1676,7 +1676,7 @@ async def suspend_user(user_id: str, request: Request, dry_run: bool = False, us
             }
         
         # GERÇEK İŞLEM: Askıya al
-        supabase.table("profiles").update({
+        supabase.table("users").update({
             "status": "suspended",
             "is_active": False
         }).eq("id", user_id).execute()
@@ -1716,7 +1716,7 @@ async def activate_user(user_id: str, request: Request, user: dict = Depends(req
     """Askıya alınmış kullanıcıyı aktifleştirir."""
     try:
         # Mevcut durumu al
-        profile = supabase.table("profiles").select("id, email, status, user_role").eq("id", user_id).execute()
+        profile = supabase.table("users").select("id, email, status, user_role").eq("id", user_id).execute()
         if not profile.data:
             raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
         
@@ -1726,7 +1726,7 @@ async def activate_user(user_id: str, request: Request, user: dict = Depends(req
             raise HTTPException(status_code=400, detail="Kullanıcı zaten aktif")
         
         # Aktifleştir
-        supabase.table("profiles").update({
+        supabase.table("users").update({
             "status": "active",
             "is_active": True
         }).eq("id", user_id).execute()
@@ -1760,7 +1760,7 @@ async def activate_user(user_id: str, request: Request, user: dict = Depends(req
 @app.post("/api/admin/users/{user_id}/toggle-status")
 async def toggle_user_status_compat(user_id: str, request: Request, user: dict = Depends(require_admin)):
     """Geriye uyumluluk — suspend veya activate çağırır"""
-    profile = supabase.table("profiles").select("status, is_active").eq("id", user_id).execute()
+    profile = supabase.table("users").select("status, is_active").eq("id", user_id).execute()
     if not profile.data:
         raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
     current = profile.data[0]

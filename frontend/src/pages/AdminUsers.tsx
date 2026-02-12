@@ -52,7 +52,7 @@ export default function AdminUsers() {
         try {
             setLoading(true);
             let query = supabase
-                .from('profiles')
+                .from('users')
                 .select('*', { count: 'exact' })
                 .order('created_at', { ascending: false })
                 .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
