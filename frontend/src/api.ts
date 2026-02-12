@@ -236,9 +236,15 @@ export const adminApi = {
     const response = await api.get('/api/admin/agency-analytics');
     return response.data;
   },
-  // User management
-  toggleUserStatus: async (userId: string) => {
-    const response = await api.post(`/api/admin/users/${userId}/toggle-status`);
+  // User management — Soft Ban + Dry-Run
+  suspendUser: async (userId: string, dryRun: boolean = false) => {
+    const response = await api.patch(`/api/admin/users/${userId}/suspend`, null, {
+      params: { dry_run: dryRun }
+    });
+    return response.data;
+  },
+  activateUser: async (userId: string) => {
+    const response = await api.patch(`/api/admin/users/${userId}/activate`);
     return response.data;
   },
   // License verification
@@ -259,8 +265,10 @@ export const adminApi = {
     const response = await api.get('/api/admin/settings');
     return response.data;
   },
-  updateSettings: async (settings: Record<string, any>) => {
-    const response = await api.put('/api/admin/settings', { settings });
+  updateSettings: async (settings: Record<string, any>, dryRun: boolean = false) => {
+    const response = await api.put('/api/admin/settings', { settings }, {
+      params: { dry_run: dryRun }
+    });
     return response.data;
   },
   // Notifications

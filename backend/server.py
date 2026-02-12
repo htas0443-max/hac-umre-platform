@@ -550,6 +550,11 @@ async def login(request: Request, credentials: UserLogin, response: Response):
                 "company_name": None
             }
         
+        # ===== SOFT BAN: Askıya alınmış kullanıcı kontrolü =====
+        if user_data.get('status') == 'suspended' or user_data.get('is_active') == False:
+            log_security_event("SUSPENDED_LOGIN_ATTEMPT", {"email": email, "ip": client_ip}, "WARN")
+            raise HTTPException(status_code=403, detail="Hesabınız askıya alınmıştır. Destek ile iletişime geçin.")
+        
         # Generate CSRF token for this session
         from security import create_csrf_token_for_session
         csrf_token = create_csrf_token_for_session(auth_response.user.id)
@@ -1599,55 +1604,170 @@ async def verify_license(operator_id: str, verified: bool, license_number: str =
 
 
 # ============================================
-# ADMIN: USER MANAGEMENT
+# ADMIN: USER MANAGEMENT (Soft Ban + Dry-Run)
 # ============================================
 
-@app.post("/api/admin/users/{user_id}/toggle-status")
-async def toggle_user_status(user_id: str, request: Request, user: dict = Depends(require_admin)):
-    """Kullanıcıyı banla veya ban kaldır (admin only)"""
+def _calculate_user_impact(user_id: str) -> dict:
+    """Kullanıcının askıya alınmasının etkisini hesaplar (dry-run için)"""
+    impact = {
+        "affected_tours": 0,
+        "affected_favorites": 0,
+        "affected_reviews": 0,
+        "tour_titles": [],
+    }
     try:
-        # Kendi kendini banlama koruması
+        # Kullanıcının aktif turları
+        tours = supabase.table("tours").select("id, title").eq("operator_id", user_id).in_("status", ["approved", "pending"]).execute()
+        if tours.data:
+            impact["affected_tours"] = len(tours.data)
+            impact["tour_titles"] = [t["title"] for t in tours.data[:5]]  # max 5 title
+    except Exception:
+        pass
+    try:
+        # Favoriler
+        favs = supabase.table("favorites").select("id", count="exact").eq("user_id", user_id).execute()
+        impact["affected_favorites"] = favs.count or 0
+    except Exception:
+        pass
+    try:
+        # Yorumlar
+        reviews = supabase.table("reviews").select("id", count="exact").eq("user_id", user_id).execute()
+        impact["affected_reviews"] = reviews.count or 0
+    except Exception:
+        pass
+    return impact
+
+
+@app.patch("/api/admin/users/{user_id}/suspend")
+async def suspend_user(user_id: str, request: Request, dry_run: bool = False, user: dict = Depends(require_admin)):
+    """Kullanıcıyı askıya al (soft ban). dry_run=true ile etki analizi döner."""
+    try:
+        # Kendi kendini askıya alma koruması
         if user_id == user['id']:
-            raise HTTPException(status_code=400, detail="Kendinizi yasaklayamazsınız")
+            raise HTTPException(status_code=400, detail="Kendinizi askıya alamazsınız")
         
         # Mevcut durumu al
-        profile = supabase.table("profiles").select("id, email, is_active, user_role").eq("id", user_id).execute()
+        profile = supabase.table("profiles").select("id, email, is_active, user_role, status").eq("id", user_id).execute()
         if not profile.data:
             raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
         
         target_user = profile.data[0]
         
-        # Admin, admin'i banlayamaz (sadece super_admin yapabilir)
+        # Zaten askıda mı?
+        if target_user.get('status') == 'suspended':
+            raise HTTPException(status_code=400, detail="Kullanıcı zaten askıda")
+        
+        # Admin, admin'i askıya alamaz (sadece super_admin yapabilir)
         if target_user.get('user_role') in ['admin', 'super_admin'] and user.get('user_role') != 'super_admin':
-            raise HTTPException(status_code=403, detail="Admin kullanıcıları sadece super admin yasaklayabilir")
+            raise HTTPException(status_code=403, detail="Admin kullanıcıları sadece super admin askıya alabilir")
         
-        new_status = not target_user.get('is_active', True)
+        # Etki analizi
+        impact = _calculate_user_impact(user_id)
         
-        # Güncelle
-        supabase.table("profiles").update({"is_active": new_status}).eq("id", user_id).execute()
+        # DRY-RUN: Sadece etki analizi dön, DB değişikliği yapma
+        if dry_run:
+            return {
+                "dry_run": True,
+                "user_id": user_id,
+                "target_email": target_user.get('email'),
+                "target_role": target_user.get('user_role'),
+                "impact": impact,
+                "message": "Bu işlem uygulanmadı. Onay bekliyor."
+            }
+        
+        # GERÇEK İŞLEM: Askıya al
+        supabase.table("profiles").update({
+            "status": "suspended",
+            "is_active": False
+        }).eq("id", user_id).execute()
         
         # Audit log
         await write_audit_log(
             request=request,
             user_id=user['id'],
             role=user.get('user_role', 'admin'),
-            action='user_banned' if not new_status else 'user_unbanned',
+            action='user_suspended',
             entity='user',
             entity_id=user_id,
-            details={'target_email': target_user.get('email'), 'new_status': new_status}
+            details={
+                'target_email': target_user.get('email'),
+                'impact': impact
+            }
+        )
+        
+        return {
+            "dry_run": False,
+            "success": True,
+            "user_id": user_id,
+            "status": "suspended",
+            "is_active": False,
+            "impact": impact,
+            "message": "Kullanıcı askıya alındı"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_security_event("USER_SUSPEND_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Kullanıcı askıya alınırken bir hata oluştu")
+
+
+@app.patch("/api/admin/users/{user_id}/activate")
+async def activate_user(user_id: str, request: Request, user: dict = Depends(require_admin)):
+    """Askıya alınmış kullanıcıyı aktifleştirir."""
+    try:
+        # Mevcut durumu al
+        profile = supabase.table("profiles").select("id, email, status, user_role").eq("id", user_id).execute()
+        if not profile.data:
+            raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+        
+        target_user = profile.data[0]
+        
+        if target_user.get('status', 'active') == 'active' and target_user.get('is_active', True):
+            raise HTTPException(status_code=400, detail="Kullanıcı zaten aktif")
+        
+        # Aktifleştir
+        supabase.table("profiles").update({
+            "status": "active",
+            "is_active": True
+        }).eq("id", user_id).execute()
+        
+        # Audit log
+        await write_audit_log(
+            request=request,
+            user_id=user['id'],
+            role=user.get('user_role', 'admin'),
+            action='user_activated',
+            entity='user',
+            entity_id=user_id,
+            details={'target_email': target_user.get('email')}
         )
         
         return {
             "success": True,
             "user_id": user_id,
-            "is_active": new_status,
-            "message": f"Kullanıcı {'aktif edildi' if new_status else 'yasaklandı'}"
+            "status": "active",
+            "is_active": True,
+            "message": "Kullanıcı aktifleştirildi"
         }
     except HTTPException:
         raise
     except Exception as e:
-        log_security_event("USER_TOGGLE_ERROR", {"error": str(e)}, "ERROR")
-        raise HTTPException(status_code=500, detail="Kullanıcı durumu güncellenirken bir hata oluştu")
+        log_security_event("USER_ACTIVATE_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Kullanıcı aktifleştirilirken bir hata oluştu")
+
+
+# Backward compat: eski toggle endpoint'i yeni suspend/activate'e yönlendirir
+@app.post("/api/admin/users/{user_id}/toggle-status")
+async def toggle_user_status_compat(user_id: str, request: Request, user: dict = Depends(require_admin)):
+    """Geriye uyumluluk — suspend veya activate çağırır"""
+    profile = supabase.table("profiles").select("status, is_active").eq("id", user_id).execute()
+    if not profile.data:
+        raise HTTPException(status_code=404, detail="Kullanıcı bulunamadı")
+    current = profile.data[0]
+    if current.get('status') == 'suspended' or not current.get('is_active', True):
+        return await activate_user(user_id, request, user)
+    else:
+        return await suspend_user(user_id, request, dry_run=False, user=user)
 
 
 # ============================================
@@ -1671,8 +1791,8 @@ async def get_settings(user: dict = Depends(require_admin)):
         return {"settings": {}}
 
 @app.put("/api/admin/settings")
-async def update_settings(data: SettingsUpdate, request: Request, user: dict = Depends(require_admin)):
-    """Platform ayarlarını günceller. Kritik ayarlar super_admin gerektirir."""
+async def update_settings(data: SettingsUpdate, request: Request, dry_run: bool = False, user: dict = Depends(require_admin)):
+    """Platform ayarlarını günceller. dry_run=true ile değişiklikleri önizler."""
     try:
         # Kritik ayarlar kontrolü
         for key in data.settings:
@@ -1682,7 +1802,39 @@ async def update_settings(data: SettingsUpdate, request: Request, user: dict = D
                     detail=f"'{key}' ayarını değiştirmek için super admin yetkisi gerekli"
                 )
         
-        # Her ayarı upsert et
+        # Mevcut ayarları al (diff hesapla)
+        current = {}
+        try:
+            result = supabase.table("platform_settings").select("key, value").execute()
+            if result.data:
+                for row in result.data:
+                    current[row['key']] = row['value']
+        except Exception:
+            pass
+        
+        # Neyin değişeceğini hesapla
+        changes = []
+        for key, new_value in data.settings.items():
+            old_value = current.get(key)
+            if old_value != new_value:
+                changes.append({
+                    "key": key,
+                    "old_value": old_value,
+                    "new_value": new_value,
+                    "is_critical": key in CRITICAL_SETTINGS
+                })
+        
+        # DRY-RUN: Sadece değişiklik özeti dön
+        if dry_run:
+            return {
+                "dry_run": True,
+                "changes": changes,
+                "total_changes": len(changes),
+                "critical_changes": sum(1 for c in changes if c['is_critical']),
+                "message": "Bu değişiklikler henüz uygulanmadı."
+            }
+        
+        # GERÇEK İŞLEM: Her ayarı upsert et
         for key, value in data.settings.items():
             supabase.table("platform_settings").upsert(
                 {"key": key, "value": value},
@@ -1696,10 +1848,10 @@ async def update_settings(data: SettingsUpdate, request: Request, user: dict = D
             role=user.get('user_role', 'admin'),
             action='settings_updated',
             entity='platform_settings',
-            details={'changed_keys': list(data.settings.keys())}
+            details={'changed_keys': list(data.settings.keys()), 'changes': changes}
         )
         
-        return {"success": True, "message": "Ayarlar kaydedildi"}
+        return {"dry_run": False, "success": True, "message": "Ayarlar kaydedildi", "changes": changes}
     except HTTPException:
         raise
     except Exception as e:

@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { adminApi } from '../api';
 import { useSEO } from '../hooks/useSEO';
 import Breadcrumb from '../components/Breadcrumb';
+import DryRunModal from '../components/DryRunModal';
 
 interface UserProfile {
     id: string;
@@ -12,6 +13,7 @@ interface UserProfile {
     role: string;
     company_name: string | null;
     is_active: boolean;
+    status?: string;
     created_at: string;
 }
 
@@ -37,6 +39,9 @@ export default function AdminUsers() {
     const [searchQuery, setSearchQuery] = useState('');
     const [roleFilter, setRoleFilter] = useState<string>('all');
     const [togglingId, setTogglingId] = useState<string | null>(null);
+    const [dryRunResult, setDryRunResult] = useState<any>(null);
+    const [dryRunModalOpen, setDryRunModalOpen] = useState(false);
+    const [pendingSuspendId, setPendingSuspendId] = useState<string | null>(null);
     const [totalCount, setTotalCount] = useState(0);
     const [page, setPage] = useState(0);
     const PAGE_SIZE = 20;
@@ -75,24 +80,64 @@ export default function AdminUsers() {
         loadUsers();
     }, [loadUsers]);
 
-    const toggleUserStatus = async (userId: string) => {
+    // Dry-run: Askıya alma etkisini göster
+    const handleSuspendClick = async (userId: string) => {
         try {
             setTogglingId(userId);
-            const result = await adminApi.toggleUserStatus(userId);
-
-            setUsers(prev =>
-                prev.map(u =>
-                    u.id === userId ? { ...u, is_active: result.is_active } : u
-                )
-            );
+            const result = await adminApi.suspendUser(userId, true);
+            setDryRunResult(result);
+            setPendingSuspendId(userId);
+            setDryRunModalOpen(true);
         } catch (err: any) {
-            const msg = err?.response?.data?.detail || 'Kullanıcı durumu güncellenemedi';
+            const msg = err?.response?.data?.detail || 'Etki analizi başarısız';
             alert(msg);
-            console.error(msg, err);
         } finally {
             setTogglingId(null);
         }
     };
+
+    // Gerçek askıya alma
+    const executeSuspend = async () => {
+        if (!pendingSuspendId) return;
+        try {
+            setTogglingId(pendingSuspendId);
+            const result = await adminApi.suspendUser(pendingSuspendId, false);
+            setUsers(prev =>
+                prev.map(u =>
+                    u.id === pendingSuspendId ? { ...u, status: 'suspended', is_active: false } : u
+                )
+            );
+            setDryRunModalOpen(false);
+            setDryRunResult(null);
+            setPendingSuspendId(null);
+            console.log('Kullanıcı askıya alındı:', result);
+        } catch (err: any) {
+            const msg = err?.response?.data?.detail || 'Askıya alma başarısız';
+            alert(msg);
+        } finally {
+            setTogglingId(null);
+        }
+    };
+
+    // Aktifleştirme (dry-run gereksiz)
+    const handleActivate = async (userId: string) => {
+        try {
+            setTogglingId(userId);
+            await adminApi.activateUser(userId);
+            setUsers(prev =>
+                prev.map(u =>
+                    u.id === userId ? { ...u, status: 'active', is_active: true } : u
+                )
+            );
+        } catch (err: any) {
+            const msg = err?.response?.data?.detail || 'Aktifleştirme başarısız';
+            alert(msg);
+        } finally {
+            setTogglingId(null);
+        }
+    };
+
+    const isUserSuspended = (user: UserProfile) => user.status === 'suspended' || user.is_active === false;
 
     const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
@@ -227,10 +272,10 @@ export default function AdminUsers() {
                                                 borderRadius: '50px',
                                                 fontSize: '0.75rem',
                                                 fontWeight: 600,
-                                                background: user.is_active !== false ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
-                                                color: user.is_active !== false ? '#10B981' : '#EF4444',
+                                                background: !isUserSuspended(user) ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+                                                color: !isUserSuspended(user) ? '#10B981' : '#EF4444',
                                             }}>
-                                                {user.is_active !== false ? '✓ Aktif' : '✕ Engelli'}
+                                                {!isUserSuspended(user) ? '✓ Aktif' : '⏸ Askıda'}
                                             </span>
                                         </td>
                                         <td style={{ padding: '0.875rem 1rem', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
@@ -241,7 +286,7 @@ export default function AdminUsers() {
                                                 <motion.button
                                                     whileHover={{ scale: 1.05 }}
                                                     whileTap={{ scale: 0.95 }}
-                                                    onClick={() => toggleUserStatus(user.id)}
+                                                    onClick={() => isUserSuspended(user) ? handleActivate(user.id) : handleSuspendClick(user.id)}
                                                     disabled={togglingId === user.id}
                                                     style={{
                                                         display: 'inline-flex',
@@ -253,15 +298,15 @@ export default function AdminUsers() {
                                                         fontSize: '0.8rem',
                                                         fontWeight: 600,
                                                         cursor: togglingId === user.id ? 'wait' : 'pointer',
-                                                        background: user.is_active !== false
+                                                        background: !isUserSuspended(user)
                                                             ? 'rgba(239,68,68,0.15)'
                                                             : 'rgba(16,185,129,0.15)',
-                                                        color: user.is_active !== false ? '#EF4444' : '#10B981',
+                                                        color: !isUserSuspended(user) ? '#EF4444' : '#10B981',
                                                         opacity: togglingId === user.id ? 0.6 : 1,
                                                     }}
                                                 >
-                                                    {user.is_active !== false ? (
-                                                        <><ShieldOff size={14} /> Engelle</>
+                                                    {!isUserSuspended(user) ? (
+                                                        <><ShieldOff size={14} /> Askıya Al</>
                                                     ) : (
                                                         <><Shield size={14} /> Aktifleştir</>
                                                     )}
@@ -298,6 +343,20 @@ export default function AdminUsers() {
                     </button>
                 </div>
             )}
+
+            {/* Dry-Run Etki Analizi Modal */}
+            <DryRunModal
+                isOpen={dryRunModalOpen}
+                result={dryRunResult}
+                onConfirm={executeSuspend}
+                onCancel={() => {
+                    setDryRunModalOpen(false);
+                    setDryRunResult(null);
+                    setPendingSuspendId(null);
+                }}
+                loading={togglingId !== null}
+                title="Askıya Alma — Etki Analizi"
+            />
         </motion.div>
     );
 }
