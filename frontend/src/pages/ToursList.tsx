@@ -255,25 +255,21 @@ export default function ToursList() {
             <label className="form-label">Sıralama</label>
             <select
               className="form-input"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              data-testid="filter-sort-by"
+              value={`${sortBy}_${sortOrder}`}
+              onChange={(e) => {
+                const val = e.target.value;
+                const lastUnderscore = val.lastIndexOf('_');
+                setSortBy(val.substring(0, lastUnderscore));
+                setSortOrder(val.substring(lastUnderscore + 1));
+              }}
+              data-testid="filter-sort"
             >
-              <option value="created_at">Ekleme Tarihi</option>
-              <option value="price">Fiyat</option>
-              <option value="start_date">Başlangıç Tarihi</option>
-            </select>
-          </div>
-          <div>
-            <label className="form-label">Sıra</label>
-            <select
-              className="form-input"
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              data-testid="filter-sort-order"
-            >
-              <option value="desc">Azalan</option>
-              <option value="asc">Artan</option>
+              <option value="created_at_desc">🕐 En Yeni</option>
+              <option value="created_at_asc">🕐 En Eski</option>
+              <option value="price_asc">💰 En Ucuz</option>
+              <option value="price_desc">💰 En Pahalı</option>
+              <option value="start_date_asc">📅 En Yakın Tarih</option>
+              <option value="start_date_desc">📅 En Geç Tarih</option>
             </select>
           </div>
         </div>
