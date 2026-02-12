@@ -62,7 +62,7 @@ export default function AdminDashboard() {
             value: stats.totalTours,
             IconComponent: BarChart3,
             color: 'linear-gradient(135deg, #E8F5E9 0%, #A8D5BA 100%)',
-            link: '/tours'
+            link: '/admin/approval'
         },
         {
             label: 'Bekleyen Onay',
@@ -77,7 +77,7 @@ export default function AdminDashboard() {
             value: stats.approvedTours,
             IconComponent: CheckCircle,
             color: 'linear-gradient(135deg, #D1FAE5 0%, #34D399 100%)',
-            link: '/tours'
+            link: '/admin/approval'
         },
     ];
 
@@ -201,9 +201,9 @@ export default function AdminDashboard() {
                     <Link to="/admin/import" className="btn btn-outline">
                         📥 CSV Import
                     </Link>
-                    <Link to="/tours" className="btn btn-outline">
-                        🌍 Tüm Turlar
-                    </Link>
+                    <a href="/tours" target="_blank" rel="noopener noreferrer" className="btn btn-outline">
+                        🌍 Tüm Turlar ↗
+                    </a>
                 </div>
             </div>
 

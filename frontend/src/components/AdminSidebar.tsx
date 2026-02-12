@@ -22,7 +22,7 @@ const adminMenuItems: MenuItem[] = [
     { path: '/admin/audit', label: 'Audit Log', icon: '🛡️', requiredPermission: 'audit' },
     { path: '/admin/analytics', label: 'Ajanta Analytics', icon: '📈', requiredPermission: 'analytics' },
     { path: '/admin/files', label: 'Dosya Yönetimi', icon: '📂', requiredPermission: 'files' },
-    { path: '/tours', label: 'Tüm Turlar', icon: '🌍' },
+    { path: '/tours', label: 'Tüm Turlar (Site)', icon: '🌍' },
 ];
 
 interface AdminSidebarProps {
@@ -98,24 +98,39 @@ const AdminSidebar = memo(function AdminSidebar({ pendingCount = 0 }: AdminSideb
                             .filter(item => !item.requiredPermission || hasPermission(user?.role as any, item.requiredPermission))
                             .map((item) => (
                                 <li key={item.path} className="admin-sidebar-menu-item">
-                                    <NavLink
-                                        to={item.path}
-                                        end={item.path === '/admin/dashboard'}
-                                        className={({ isActive }) =>
-                                            `admin-sidebar-link ${isActive ? 'active' : ''}`
-                                        }
-                                        title={isCollapsed ? item.label : undefined}
-                                    >
-                                        <span className="admin-sidebar-link-icon">{item.icon}</span>
-                                        {!isCollapsed && (
-                                            <>
-                                                <span className="admin-sidebar-link-text">{item.label}</span>
-                                                {item.path === '/admin/approval' && pendingCount > 0 && (
-                                                    <span className="admin-sidebar-badge">{pendingCount}</span>
-                                                )}
-                                            </>
-                                        )}
-                                    </NavLink>
+                                    {item.path.startsWith('/admin') ? (
+                                        <NavLink
+                                            to={item.path}
+                                            end={item.path === '/admin/dashboard'}
+                                            className={({ isActive }) =>
+                                                `admin-sidebar-link ${isActive ? 'active' : ''}`
+                                            }
+                                            title={isCollapsed ? item.label : undefined}
+                                        >
+                                            <span className="admin-sidebar-link-icon">{item.icon}</span>
+                                            {!isCollapsed && (
+                                                <>
+                                                    <span className="admin-sidebar-link-text">{item.label}</span>
+                                                    {item.path === '/admin/approval' && pendingCount > 0 && (
+                                                        <span className="admin-sidebar-badge">{pendingCount}</span>
+                                                    )}
+                                                </>
+                                            )}
+                                        </NavLink>
+                                    ) : (
+                                        <a
+                                            href={item.path}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="admin-sidebar-link"
+                                            title={isCollapsed ? item.label : undefined}
+                                        >
+                                            <span className="admin-sidebar-link-icon">{item.icon}</span>
+                                            {!isCollapsed && (
+                                                <span className="admin-sidebar-link-text">{item.label} ↗</span>
+                                            )}
+                                        </a>
+                                    )}
                                 </li>
                             ))}
                     </ul>
