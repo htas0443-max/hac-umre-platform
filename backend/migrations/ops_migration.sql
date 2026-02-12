@@ -1,10 +1,28 @@
 -- ============================================
 -- Migration: Operational Control Layer
--- 1. Extend audit_logs with previous/new state
+-- 1. Create audit_logs table (if not exists)
 -- 2. Create feature_flags table
 -- ============================================
 
--- 1. Extend audit_logs
+-- 1. Create audit_logs table with rollback support
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID,
+  role TEXT,
+  action TEXT NOT NULL,
+  entity TEXT,
+  entity_id TEXT,
+  details JSONB DEFAULT '{}',
+  previous_data JSONB DEFAULT '{}',
+  new_data JSONB DEFAULT '{}',
+  is_rollback BOOLEAN DEFAULT FALSE,
+  rollback_of UUID,
+  ip_address TEXT,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- If table already existed, add new columns
 ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS previous_data JSONB DEFAULT '{}';
 ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS new_data JSONB DEFAULT '{}';
 ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS is_rollback BOOLEAN DEFAULT FALSE;
