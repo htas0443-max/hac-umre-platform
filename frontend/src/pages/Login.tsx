@@ -45,7 +45,14 @@ export default function Login() {
   const [showOTP, setShowOTP] = useState(false);
   const [otpEmail, setOtpEmail] = useState('');
   const [turnstileToken, setTurnstileToken] = useState('');
-  const { login, sendEmailOTP, verifyEmailOTP, signInWithGoogle } = useAuth();
+  const { login, sendEmailOTP, verifyEmailOTP, signInWithGoogle, user } = useAuth();
+
+  // Role-based redirect helper
+  const getRedirectPath = (userRole?: string) => {
+    if (userRole === 'admin' || userRole === 'super_admin' || userRole === 'support') return '/admin/dashboard';
+    if (userRole === 'operator') return '/operator/dashboard';
+    return '/tours';
+  };
   const navigate = useNavigate();
 
   // SEO: noindex - giriş sayfası indexlenmemeli
@@ -107,11 +114,17 @@ export default function Login() {
         setShowOTP(true);
         clearLockout();
       } else {
-        // Success - clear attempts and navigate
+        // Success - clear attempts and navigate based on role
         clearLockout();
-        navigate('/tours');
+        navigate(getRedirectPath(result.user?.role));
       }
     } catch (err: any) {
+      // DEBUG: Gerçek hatayı konsola yazdır
+      console.error('[LOGIN DEBUG] Hata detayı:', err);
+      console.error('[LOGIN DEBUG] Response:', err?.response?.data);
+      console.error('[LOGIN DEBUG] Status:', err?.response?.status);
+      console.error('[LOGIN DEBUG] Message:', err?.message);
+
       // Increment failed attempts
       const currentData = getLockoutData();
       const newAttempts = currentData.attempts + 1;
@@ -146,7 +159,8 @@ export default function Login() {
     await verifyEmailOTP(otpEmail, code);
     localStorage.removeItem('pending_2fa_email');
     clearLockout();
-    navigate('/tours');
+    // Admin/operator OTP'den sonra doğru panele yönlendir
+    navigate(getRedirectPath(user?.role || otpEmail.includes('admin') ? 'admin' : 'user'));
   };
 
   const handleOTPResend = async () => {

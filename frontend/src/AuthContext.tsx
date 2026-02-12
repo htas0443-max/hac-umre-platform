@@ -14,7 +14,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string, turnstile_token?: string) => Promise<{ requiresOTP: boolean; email?: string }>;
+  login: (email: string, password: string, turnstile_token?: string) => Promise<{ requiresOTP: boolean; email?: string; user?: User }>;
   register: (email: string, password: string, role?: string, company_name?: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -127,7 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(data.token);
       setAuthToken(data.token);
       setUser(data.user);
-      return { requiresOTP: false };
+      return { requiresOTP: false, user: data.user };
     } catch (error: any) {
       const msg = error.response?.data?.detail || error.message || 'Giriş yapılamadı';
       throw new Error(translateError(msg));
