@@ -28,6 +28,8 @@ const adminMenuItems: MenuItem[] = [
     { path: '/admin/files', label: 'Dosya Yönetimi', icon: '📂', requiredPermission: 'files' },
     { path: '/admin/settings', label: 'Ayarlar', icon: '⚙️', requiredPermission: 'settings' },
     { path: '/admin/cms', label: 'CMS', icon: '📝', requiredPermission: 'cms' },
+    { path: '/admin/history', label: 'İşlem Geçmişi', icon: '🕐', requiredPermission: 'history' },
+    { path: '/admin/feature-flags', label: 'Feature Flags', icon: '🚩', requiredPermission: 'feature_flags' },
     { path: '/tours', label: 'Tüm Turlar (Site)', icon: '🌍' },
 ];
 

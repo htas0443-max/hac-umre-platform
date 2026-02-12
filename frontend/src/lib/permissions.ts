@@ -26,6 +26,8 @@ export type Permission =
     | 'settings'
     | 'cms'
     | 'reports'
+    | 'history'
+    | 'feature_flags'
     | 'own_tours'
     | 'own_stats'
     | 'license_upload'
@@ -38,12 +40,14 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
         'dashboard', 'approval', 'tours.create', 'tours.edit', 'tours.delete', 'tours.view',
         'reviews', 'tickets', 'import', 'audit', 'analytics', 'files',
         'users', 'verification', 'notifications', 'settings', 'cms', 'reports',
+        'history', 'feature_flags',
         'own_tours', 'own_stats', 'license_upload', 'favorites', 'user_reviews',
     ],
     admin: [
         'dashboard', 'approval', 'tours.create', 'tours.edit', 'tours.view',
         'reviews', 'tickets', 'import', 'audit', 'analytics', 'files',
         'users', 'verification', 'notifications', 'settings', 'cms', 'reports',
+        'history', 'feature_flags',
     ],
     support: [
         'tickets', 'reviews',

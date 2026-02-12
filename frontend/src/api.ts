@@ -271,6 +271,25 @@ export const adminApi = {
     });
     return response.data;
   },
+  // Audit History (paginated + filters)
+  getAuditHistory: async (params: Record<string, string | number>) => {
+    const response = await api.get('/api/admin/audit-history', { params });
+    return response.data;
+  },
+  // Rollback (super_admin only)
+  rollbackAction: async (auditId: string) => {
+    const response = await api.post(`/api/admin/rollback/${auditId}`);
+    return response.data;
+  },
+  // Feature Flags
+  getFeatureFlags: async () => {
+    const response = await api.get('/api/admin/feature-flags');
+    return response.data;
+  },
+  toggleFeatureFlag: async (key: string) => {
+    const response = await api.patch(`/api/admin/feature-flags/${key}`);
+    return response.data;
+  },
   // Notifications
   getNotifications: async () => {
     const response = await api.get('/api/admin/notifications');

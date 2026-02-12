@@ -51,6 +51,8 @@ const AdminNotifications = React.lazy(() => import('./pages/AdminNotifications')
 const AdminSettings = React.lazy(() => import('./pages/AdminSettings'));
 const AdminCMS = React.lazy(() => import('./pages/AdminCMS'));
 const AdminReports = React.lazy(() => import('./pages/AdminReports'));
+const AdminHistory = React.lazy(() => import('./pages/AdminHistory'));
+const AdminFeatureFlags = React.lazy(() => import('./pages/AdminFeatureFlags'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 // Loading component for Suspense fallback
@@ -179,6 +181,8 @@ function AppRoutes() {
                 <Route path="settings" element={<AdminSettings />} />
                 <Route path="cms" element={<AdminCMS />} />
                 <Route path="reports" element={<AdminReports />} />
+                <Route path="history" element={<AdminHistory />} />
+                <Route path="feature-flags" element={<AdminFeatureFlags />} />
               </Route>
 
               {/* Support Ticket Routes */}

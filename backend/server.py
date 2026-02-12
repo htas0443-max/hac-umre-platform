@@ -1029,9 +1029,11 @@ async def write_audit_log(
     action: str,
     entity: str = None,
     entity_id: str = None,
-    details: dict = None
+    details: dict = None,
+    previous_data: dict = None,
+    new_data: dict = None
 ):
-    """Audit log'a kayıt ekler. Hata alırsa sessizce geçer (ana işlemi bozmaz)."""
+    """Audit log'a kayıt ekler. previous_data/new_data rollback için saklanır."""
     try:
         ip = request.client.host if request.client else "unknown"
         ua = request.headers.get("user-agent", "")[:500]
@@ -1042,6 +1044,8 @@ async def write_audit_log(
             "entity": entity,
             "entity_id": str(entity_id) if entity_id else None,
             "details": details or {},
+            "previous_data": previous_data or {},
+            "new_data": new_data or {},
             "ip_address": ip,
             "user_agent": ua,
         }).execute()
@@ -1691,7 +1695,9 @@ async def suspend_user(user_id: str, request: Request, dry_run: bool = False, us
             details={
                 'target_email': target_user.get('email'),
                 'impact': impact
-            }
+            },
+            previous_data={'status': target_user.get('status', 'active')},
+            new_data={'status': 'suspended'}
         )
         
         return {
@@ -1736,7 +1742,9 @@ async def activate_user(user_id: str, request: Request, user: dict = Depends(req
             action='user_activated',
             entity='user',
             entity_id=user_id,
-            details={'target_email': target_user.get('email')}
+            details={'target_email': target_user.get('email')},
+            previous_data={'status': target_user.get('status', 'suspended')},
+            new_data={'status': 'active'}
         )
         
         return {
@@ -1838,13 +1846,17 @@ async def update_settings(data: SettingsUpdate, request: Request, dry_run: bool 
             ).execute()
         
         # Audit log
+        old_settings = {c['key']: c['old_value'] for c in changes}
+        new_settings = {c['key']: c['new_value'] for c in changes}
         await write_audit_log(
             request=request,
             user_id=user['id'],
             role=user.get('user_role', 'admin'),
             action='settings_updated',
             entity='platform_settings',
-            details={'changed_keys': list(data.settings.keys()), 'changes': changes}
+            details={'changed_keys': list(data.settings.keys()), 'changes': changes},
+            previous_data=old_settings,
+            new_data=new_settings
         )
         
         return {"dry_run": False, "success": True, "message": "Ayarlar kaydedildi", "changes": changes}
@@ -1853,6 +1865,208 @@ async def update_settings(data: SettingsUpdate, request: Request, dry_run: bool 
     except Exception as e:
         log_security_event("SETTINGS_UPDATE_ERROR", {"error": str(e)}, "ERROR")
         raise HTTPException(status_code=500, detail="Ayarlar kaydedilirken bir hata oluştu")
+
+
+# ============================================
+# ADMIN: ACTION HISTORY (Paginated + Filters)
+# ============================================
+
+@app.get("/api/admin/audit-history")
+async def get_audit_history(
+    page: int = 0,
+    page_size: int = 20,
+    action: str = None,
+    role: str = None,
+    user_id: str = None,
+    user: dict = Depends(require_admin)
+):
+    """Paginated audit log history with filters"""
+    try:
+        query = supabase.table("audit_logs").select(
+            "*", count="exact"
+        ).order("created_at", desc=True)
+        
+        if action:
+            query = query.eq("action", action)
+        if role:
+            query = query.eq("role", role)
+        if user_id:
+            query = query.eq("user_id", user_id)
+        
+        offset = page * page_size
+        query = query.range(offset, offset + page_size - 1)
+        result = query.execute()
+        
+        return {
+            "data": result.data or [],
+            "total": result.count or 0,
+            "page": page,
+            "page_size": page_size
+        }
+    except Exception as e:
+        log_security_event("AUDIT_HISTORY_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Audit geçmişi yüklenemedi")
+
+
+# ============================================
+# ADMIN: ROLLBACK (super_admin only)
+# ============================================
+
+ROLLBACK_ELIGIBLE_ACTIONS = [
+    'user_suspended', 'user_activated',
+    'settings_updated', 'feature_flag_updated'
+]
+
+ROLLBACK_ENTITY_TABLE = {
+    'user': 'users',
+    'platform_settings': 'platform_settings',
+    'feature_flag': 'feature_flags',
+}
+
+@app.post("/api/admin/rollback/{audit_id}")
+async def rollback_action(audit_id: str, request: Request, user: dict = Depends(require_super_admin)):
+    """Audit kaydındaki previous_data ile işlemi geri alır. Sadece super_admin."""
+    try:
+        # Audit kaydını bul
+        record = supabase.table("audit_logs").select("*").eq("id", audit_id).execute()
+        if not record.data:
+            raise HTTPException(status_code=404, detail="Audit kaydı bulunamadı")
+        
+        audit = record.data[0]
+        
+        # Zaten rollback edilmiş mi?
+        if audit.get('is_rollback'):
+            raise HTTPException(status_code=400, detail="Bu kayıt zaten bir rollback işlemidir")
+        
+        # Rollback yapılabilir mi?
+        if audit['action'] not in ROLLBACK_ELIGIBLE_ACTIONS:
+            raise HTTPException(status_code=400, detail=f"'{audit['action']}' işlemi geri alınamaz")
+        
+        previous_data = audit.get('previous_data', {})
+        if not previous_data:
+            raise HTTPException(status_code=400, detail="Geri alınacak veri bulunamadı (previous_data boş)")
+        
+        entity = audit.get('entity')
+        entity_id = audit.get('entity_id')
+        
+        # Rollback uygula
+        if entity == 'user' and entity_id:
+            supabase.table("users").update(previous_data).eq("id", entity_id).execute()
+        elif entity == 'platform_settings':
+            for key, value in previous_data.items():
+                supabase.table("platform_settings").upsert(
+                    {"key": key, "value": value}, on_conflict="key"
+                ).execute()
+        elif entity == 'feature_flag' and entity_id:
+            supabase.table("feature_flags").update(previous_data).eq("key", entity_id).execute()
+        else:
+            raise HTTPException(status_code=400, detail="Bilinmeyen entity türü")
+        
+        # Rollback audit kaydı
+        await write_audit_log(
+            request=request,
+            user_id=user['id'],
+            role=user.get('user_role', 'super_admin'),
+            action=f"rollback_{audit['action']}",
+            entity=entity,
+            entity_id=entity_id,
+            details={'rolled_back_audit_id': audit_id},
+            previous_data=audit.get('new_data', {}),
+            new_data=previous_data
+        )
+        
+        # Orijinal kaydı rollback olarak işaretle
+        try:
+            supabase.table("audit_logs").update(
+                {"is_rollback": True}
+            ).eq("id", audit_id).execute()
+        except Exception:
+            pass
+        
+        return {
+            "success": True,
+            "message": f"'{audit['action']}' işlemi geri alındı",
+            "rolled_back_data": previous_data
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_security_event("ROLLBACK_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Rollback işlemi başarısız")
+
+
+# ============================================
+# ADMIN: FEATURE FLAGS
+# ============================================
+
+@app.get("/api/admin/feature-flags")
+async def get_feature_flags(user: dict = Depends(require_admin)):
+    """Tüm feature flag'leri listeler"""
+    try:
+        result = supabase.table("feature_flags").select("*").order("key").execute()
+        return {"flags": result.data or []}
+    except Exception as e:
+        log_security_event("FEATURE_FLAGS_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Feature flags yüklenemedi")
+
+
+@app.get("/api/feature-flags/public")
+async def get_public_feature_flags():
+    """Public: Frontend useFeature hook için — auth gerekmez"""
+    try:
+        result = supabase.table("feature_flags").select("key, enabled").execute()
+        flags = {}
+        if result.data:
+            for row in result.data:
+                flags[row['key']] = row['enabled']
+        return {"flags": flags}
+    except Exception:
+        return {"flags": {}}
+
+
+@app.patch("/api/admin/feature-flags/{key}")
+async def toggle_feature_flag(key: str, request: Request, user: dict = Depends(require_admin)):
+    """Feature flag aç/kapat"""
+    try:
+        # Mevcut durumu al
+        existing = supabase.table("feature_flags").select("*").eq("key", key).execute()
+        if not existing.data:
+            raise HTTPException(status_code=404, detail=f"Feature flag '{key}' bulunamadı")
+        
+        current = existing.data[0]
+        new_enabled = not current['enabled']
+        
+        # Güncelle
+        supabase.table("feature_flags").update({
+            "enabled": new_enabled,
+            "updated_by": user['id'],
+            "updated_at": datetime.utcnow().isoformat()
+        }).eq("key", key).execute()
+        
+        # Audit log
+        await write_audit_log(
+            request=request,
+            user_id=user['id'],
+            role=user.get('user_role', 'admin'),
+            action='feature_flag_updated',
+            entity='feature_flag',
+            entity_id=key,
+            details={'flag_key': key},
+            previous_data={'enabled': current['enabled']},
+            new_data={'enabled': new_enabled}
+        )
+        
+        return {
+            "success": True,
+            "key": key,
+            "enabled": new_enabled,
+            "message": f"'{key}' {'aktif' if new_enabled else 'devre dışı'}"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_security_event("FEATURE_FLAG_TOGGLE_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Feature flag güncellenemedi")
 
 
 # ============================================
