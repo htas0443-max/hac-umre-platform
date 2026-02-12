@@ -207,3 +207,78 @@
     font-size: 0.8rem;
     color: #6ee7b7;
 }
+
+/* ===================================
+   LIGHT THEME OVERRIDES
+   =================================== */
+.admin-theme-light {
+    --bg-primary: #f8f9fa;
+    --bg-secondary: #ffffff;
+    --text-primary: #1a1a2e;
+    --text-secondary: #6b7280;
+    --border-color: #e5e7eb;
+}
+
+.admin-theme-light .admin-sidebar {
+    background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+    border-right-color: #e5e7eb;
+}
+
+.admin-theme-light .admin-sidebar-link {
+    color: #4b5563;
+}
+
+.admin-theme-light .admin-sidebar-link:hover {
+    background: rgba(139, 92, 246, 0.08);
+    color: #7c3aed;
+}
+
+.admin-theme-light .admin-sidebar-link.active {
+    background: rgba(139, 92, 246, 0.12);
+    color: #7c3aed;
+    border-left-color: #7c3aed;
+}
+
+.admin-theme-light .admin-sidebar-header,
+.admin-theme-light .admin-sidebar-logo-text {
+    color: #1a1a2e;
+}
+
+.admin-theme-light .admin-sidebar-footer {
+    border-top-color: #e5e7eb;
+}
+
+.admin-theme-light .admin-sidebar-user-email,
+.admin-theme-light .admin-sidebar-user-role {
+    color: #4b5563;
+}
+
+.admin-theme-light .admin-content {
+    background: #f8f9fa;
+}
+
+.admin-theme-light .card {
+    background: #ffffff;
+    border-color: #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.admin-theme-light .admin-card {
+    background: #ffffff;
+    border-color: #e5e7eb;
+}
+
+.admin-theme-light .admin-table th {
+    background: #f1f5f9;
+    color: #7c3aed;
+    border-bottom-color: #e5e7eb;
+}
+
+.admin-theme-light .admin-table td {
+    color: #374151;
+    border-bottom-color: #f3f4f6;
+}
+
+.admin-theme-light .admin-table tr:hover td {
+    background: #faf5ff;
+}

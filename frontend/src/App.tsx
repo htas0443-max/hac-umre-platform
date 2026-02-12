@@ -45,6 +45,12 @@ const AdminLayout = React.lazy(() => import('./components/AdminLayout'));
 const AdminAuditLog = React.lazy(() => import('./pages/AdminAuditLog'));
 const AdminAnalytics = React.lazy(() => import('./pages/AdminAnalytics'));
 const AdminFileManager = React.lazy(() => import('./pages/AdminFileManager'));
+const AdminUsers = React.lazy(() => import('./pages/AdminUsers'));
+const AdminVerification = React.lazy(() => import('./pages/AdminVerification'));
+const AdminNotifications = React.lazy(() => import('./pages/AdminNotifications'));
+const AdminSettings = React.lazy(() => import('./pages/AdminSettings'));
+const AdminCMS = React.lazy(() => import('./pages/AdminCMS'));
+const AdminReports = React.lazy(() => import('./pages/AdminReports'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 // Loading component for Suspense fallback
@@ -167,6 +173,12 @@ function AppRoutes() {
                 <Route path="audit" element={<AdminAuditLog />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
                 <Route path="files" element={<AdminFileManager />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="verification" element={<AdminVerification />} />
+                <Route path="notifications" element={<AdminNotifications />} />
+                <Route path="settings" element={<AdminSettings />} />
+                <Route path="cms" element={<AdminCMS />} />
+                <Route path="reports" element={<AdminReports />} />
               </Route>
 
               {/* Support Ticket Routes */}

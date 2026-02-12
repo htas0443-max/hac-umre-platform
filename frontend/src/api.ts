@@ -236,6 +236,15 @@ export const adminApi = {
     const response = await api.get('/api/admin/agency-analytics');
     return response.data;
   },
+  // License verification
+  verifyLicense: async (operatorId: string) => {
+    const response = await api.post(`/api/admin/licenses/verify/${operatorId}`);
+    return response.data;
+  },
+  rejectLicense: async (operatorId: string) => {
+    const response = await api.post(`/api/admin/licenses/verify/${operatorId}`, { action: 'reject' });
+    return response.data;
+  },
 };
 
 // Tickets API

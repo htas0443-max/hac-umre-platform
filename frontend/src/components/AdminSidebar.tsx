@@ -16,12 +16,18 @@ const adminMenuItems: MenuItem[] = [
     { path: '/admin/dashboard', label: 'Dashboard', icon: '📊', requiredPermission: 'dashboard' },
     { path: '/admin/approval', label: 'Tur Onayları', icon: '✅', requiredPermission: 'approval' },
     { path: '/admin/add-tour', label: 'Yeni Tur Ekle', icon: '➕', requiredPermission: 'tours.create' },
+    { path: '/admin/users', label: 'Kullanıcılar', icon: '👥', requiredPermission: 'users' },
+    { path: '/admin/verification', label: 'Operatör Doğrulama', icon: '🛡️', requiredPermission: 'verification' },
     { path: '/admin/reviews', label: 'Yorumlar', icon: '⭐', requiredPermission: 'reviews' },
     { path: '/admin/tickets', label: 'Destek Biletleri', icon: '🎫', requiredPermission: 'tickets' },
+    { path: '/admin/notifications', label: 'Bildirimler', icon: '🔔', requiredPermission: 'notifications' },
+    { path: '/admin/reports', label: 'Raporlar', icon: '📋', requiredPermission: 'reports' },
     { path: '/admin/import', label: 'CSV Import', icon: '📥', requiredPermission: 'import' },
     { path: '/admin/audit', label: 'Audit Log', icon: '🛡️', requiredPermission: 'audit' },
     { path: '/admin/analytics', label: 'Ajanta Analytics', icon: '📈', requiredPermission: 'analytics' },
     { path: '/admin/files', label: 'Dosya Yönetimi', icon: '📂', requiredPermission: 'files' },
+    { path: '/admin/settings', label: 'Ayarlar', icon: '⚙️', requiredPermission: 'settings' },
+    { path: '/admin/cms', label: 'CMS', icon: '📝', requiredPermission: 'cms' },
     { path: '/tours', label: 'Tüm Turlar (Site)', icon: '🌍' },
 ];
 
