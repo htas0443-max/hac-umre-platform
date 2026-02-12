@@ -2,6 +2,8 @@ import axios from 'axios';
 import type { Tour, ComparisonResult, AIProvider } from './types';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL || '';
+console.log('[API DEBUG] VITE_BACKEND_URL:', import.meta.env.VITE_BACKEND_URL);
+console.log('[API DEBUG] API_URL kullanılan:', API_URL);
 
 // ✅ 2️⃣ JWT TOKEN ONLY (Memory Storage)
 // Token'i localStorage yerine bellekte tutuyoruz.
@@ -81,11 +83,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid
-      setAuthToken(null);
-      // Optional: Trigger a re-auth via context/callback if needed, 
-      // but for now redirect to login is safe default behavior
-      window.location.href = '/login';
+      // Don't redirect for auth endpoints where 401 is expected
+      const url = error.config?.url || '';
+      const isAuthEndpoint = url.includes('/api/auth/refresh') ||
+        url.includes('/api/auth/login') ||
+        url.includes('/api/auth/sync');
+
+      if (!isAuthEndpoint) {
+        setAuthToken(null);
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

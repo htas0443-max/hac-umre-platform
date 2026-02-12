@@ -2,23 +2,26 @@ import { memo, useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../AuthContext';
+import { hasPermission, type Permission } from '../lib/permissions';
 
 interface MenuItem {
     path: string;
     label: string;
     icon: string;
     badge?: number;
+    requiredPermission?: Permission;
 }
 
 const adminMenuItems: MenuItem[] = [
-    { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
-    { path: '/admin/approval', label: 'Tur Onayları', icon: '✅' },
-    { path: '/admin/add-tour', label: 'Yeni Tur Ekle', icon: '➕' },
-    { path: '/admin/reviews', label: 'Yorumlar', icon: '⭐' },
-    { path: '/admin/tickets', label: 'Destek Biletleri', icon: '🎫' },
-    { path: '/admin/import', label: 'CSV Import', icon: '📥' },
-    { path: '/admin/audit', label: 'Audit Log', icon: '🛡️' },
-    { path: '/admin/analytics', label: 'Ajanta Analytics', icon: '📈' },
+    { path: '/admin/dashboard', label: 'Dashboard', icon: '📊', requiredPermission: 'dashboard' },
+    { path: '/admin/approval', label: 'Tur Onayları', icon: '✅', requiredPermission: 'approval' },
+    { path: '/admin/add-tour', label: 'Yeni Tur Ekle', icon: '➕', requiredPermission: 'tours.create' },
+    { path: '/admin/reviews', label: 'Yorumlar', icon: '⭐', requiredPermission: 'reviews' },
+    { path: '/admin/tickets', label: 'Destek Biletleri', icon: '🎫', requiredPermission: 'tickets' },
+    { path: '/admin/import', label: 'CSV Import', icon: '📥', requiredPermission: 'import' },
+    { path: '/admin/audit', label: 'Audit Log', icon: '🛡️', requiredPermission: 'audit' },
+    { path: '/admin/analytics', label: 'Ajanta Analytics', icon: '📈', requiredPermission: 'analytics' },
+    { path: '/admin/files', label: 'Dosya Yönetimi', icon: '📂', requiredPermission: 'files' },
     { path: '/tours', label: 'Tüm Turlar', icon: '🌍' },
 ];
 
@@ -91,28 +94,30 @@ const AdminSidebar = memo(function AdminSidebar({ pendingCount = 0 }: AdminSideb
                 {/* Navigation */}
                 <nav className="admin-sidebar-nav">
                     <ul className="admin-sidebar-menu">
-                        {adminMenuItems.map((item) => (
-                            <li key={item.path} className="admin-sidebar-menu-item">
-                                <NavLink
-                                    to={item.path}
-                                    end={item.path === '/admin/dashboard'}
-                                    className={({ isActive }) =>
-                                        `admin-sidebar-link ${isActive ? 'active' : ''}`
-                                    }
-                                    title={isCollapsed ? item.label : undefined}
-                                >
-                                    <span className="admin-sidebar-link-icon">{item.icon}</span>
-                                    {!isCollapsed && (
-                                        <>
-                                            <span className="admin-sidebar-link-text">{item.label}</span>
-                                            {item.path === '/admin/approval' && pendingCount > 0 && (
-                                                <span className="admin-sidebar-badge">{pendingCount}</span>
-                                            )}
-                                        </>
-                                    )}
-                                </NavLink>
-                            </li>
-                        ))}
+                        {adminMenuItems
+                            .filter(item => !item.requiredPermission || hasPermission(user?.role as any, item.requiredPermission))
+                            .map((item) => (
+                                <li key={item.path} className="admin-sidebar-menu-item">
+                                    <NavLink
+                                        to={item.path}
+                                        end={item.path === '/admin/dashboard'}
+                                        className={({ isActive }) =>
+                                            `admin-sidebar-link ${isActive ? 'active' : ''}`
+                                        }
+                                        title={isCollapsed ? item.label : undefined}
+                                    >
+                                        <span className="admin-sidebar-link-icon">{item.icon}</span>
+                                        {!isCollapsed && (
+                                            <>
+                                                <span className="admin-sidebar-link-text">{item.label}</span>
+                                                {item.path === '/admin/approval' && pendingCount > 0 && (
+                                                    <span className="admin-sidebar-badge">{pendingCount}</span>
+                                                )}
+                                            </>
+                                        )}
+                                    </NavLink>
+                                </li>
+                            ))}
                     </ul>
                 </nav>
 

@@ -1,14 +1,16 @@
-from fastapi import FastAPI, UploadFile, File, Form, Header, Request, status
+from fastapi import FastAPI, UploadFile, File, Form, Header, Request, status, Depends, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.https_redirect import HttpsRedirectMiddleware
+# from fastapi.middleware.https_redirect import HttpsRedirectMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, Field
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from datetime import datetime, timedelta
 import os
 import json
 from dotenv import load_dotenv
+load_dotenv()  # .env dosyasını yükle — CORS_ORIGINS, ENVIRONMENT vb. için ZORUNLU
 from supabase import create_client, Client
 import csv
 import io
@@ -43,15 +45,31 @@ app = FastAPI(title="Hac & Umre Platformu API")
 # Production ortamında HTTPS zorunlu kılınır.
 # Local development ("development") modunda iptal edilebilir.
 # -------------------------------------------------------------------------
-if os.getenv("ENVIRONMENT", "production").lower() == "production":
-    app.add_middleware(HttpsRedirectMiddleware)
+# if os.getenv("ENVIRONMENT", "production").lower() == "production":
+#    app.add_middleware(HttpsRedirectMiddleware)
 
 # -------------------------------------------------------------------------
-# ✅ 4️⃣ CORS WHITELIST
-# "*" yerine sadece izin verilen domainler.
+# ✅ 5️⃣ RATE LIMIT (BRUTE FORCE)
 # -------------------------------------------------------------------------
-# .env dosyasından izin verilen originleri al, yoksa varsayılanları kullan
-ALLOWED_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173,https://hacveumreturlari.net").split(",")
+app.state.limiter = limiter
+app.add_exception_handler(429, _rate_limit_exceeded_handler)
+
+# ✅ REQUEST LOGGING (her API çağrısını loglar)
+# Only in production — BaseHTTPMiddleware causes deadlocks in dev with multiple middlewares
+if os.getenv("ENVIRONMENT", "production").lower() == "production":
+    app.add_middleware(RequestLoggingMiddleware)
+
+# ⚠️ Development modda security headers ve signing middleware devre dışı
+# Bu middleware'ler CORS preflight isteklerini bozuyordu.
+# Production'da tekrar aktif edilecek.
+if os.getenv("ENVIRONMENT", "production").lower() == "production":
+    app.middleware("http")(add_security_headers)
+    app.middleware("http")(verify_request_signature)
+
+# -------------------------------------------------------------------------
+# ✅ 4️⃣ CORS WHITELIST — EN SON EKLENMELİ (en dış katman)
+# -------------------------------------------------------------------------
+ALLOWED_ORIGINS = [origin.strip() for origin in os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173,https://hacveumreturlari.net").split(",") if origin.strip()]
 
 app.add_middleware(
     CORSMiddleware,
@@ -59,20 +77,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    max_age=600,
 )
-
-# -------------------------------------------------------------------------
-# ✅ 5️⃣ RATE LIMIT (BRUTE FORCE) & SECURITY HEADERS
-# -------------------------------------------------------------------------
-app.state.limiter = limiter
-app.add_exception_handler(429, _rate_limit_exceeded_handler)
-# Security headers middleware from security.py
-app.middleware("http")(add_security_headers)
-# ✅ API REQUEST SIGNING — HMAC-SHA256 doğrulama
-app.middleware("http")(verify_request_signature)
-
-# ✅ REQUEST LOGGING (her API çağrısını loglar)
-app.add_middleware(RequestLoggingMiddleware)
 
 # ===== SEC-006: GENERIC ERROR HANDLER (Information Leakage Prevention) =====
 from fastapi.exceptions import RequestValidationError
@@ -107,8 +113,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
         content={"detail": "Geçersiz istek formatı. Lütfen girdiğiniz bilgileri kontrol edin."}
     )
 
-# Add security headers middleware
-app.middleware("http")(add_security_headers)
+# NOTE: add_security_headers is registered conditionally above (lines 63-65)
+# DO NOT register it again here — it breaks CORS preflight in development mode.
 
 # ===== REQUEST TIMEOUT MIDDLEWARE (DoS Protection) =====
 import asyncio
@@ -137,27 +143,14 @@ class TimeoutMiddleware(BaseHTTPMiddleware):
                 content={"detail": "İstek zaman aşımına uğradı. Lütfen tekrar deneyin."}
             )
 
-app.add_middleware(TimeoutMiddleware)
+# Only enable timeout middleware in production — it causes deadlocks
+# when combined with other BaseHTTPMiddleware subclasses in development
+if os.getenv("ENVIRONMENT", "production").lower() == "production":
+    app.add_middleware(TimeoutMiddleware)
 
-# CORS - Secure configuration (SEC-002 FIX)
-_cors_env = os.getenv("CORS_ORIGINS", "")
-if not _cors_env or _cors_env.strip() == "*":
-    # In production, CORS_ORIGINS must be explicitly set
-    import warnings
-    warnings.warn("CORS_ORIGINS not set or is wildcard. Using restrictive default.", RuntimeWarning)
-    ALLOWED_ORIGINS = []  # No origins allowed by default
-else:
-    ALLOWED_ORIGINS = [origin.strip() for origin in _cors_env.split(",") if origin.strip()]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True if ALLOWED_ORIGINS else False,  # Only allow credentials with explicit origins
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["Authorization", "Content-Type", "X-CSRF-Token"],  # SEC-005: CSRF header
-    expose_headers=["X-Total-Count"],
-    max_age=600,  # Cache preflight for 10 minutes
-)
+# NOTE: CORS middleware is already registered above (lines 72-80).
+# The duplicate registration was removed because it conflicted with the primary one
+# and caused CORS preflight failures. All CORS config is in the single middleware above.
 
 # -------------------------------------------------------------------------
 # ✅ 6️⃣ APPLICATION WAF (Bot Protection)
@@ -252,16 +245,25 @@ def get_current_user(request: Request, credentials: Optional[HTTPAuthorizationCr
         raise HTTPException(status_code=401, detail="Kimlik doğrulama hatası")
 
 def require_admin(user: dict = Depends(get_current_user)) -> dict:
-    """Admin yetkisi gerektirir"""
-    if user.get("user_role") != "admin":
+    """Admin yetkisi gerektirir (admin veya super_admin)"""
+    if user.get("user_role") not in ["admin", "super_admin"]:
         raise HTTPException(status_code=403, detail="Admin yetkisi gerekli")
     return user
 
 def require_operator(user: dict = Depends(get_current_user)) -> dict:
     """Operator yetkisi gerektirir"""
-    if user.get("user_role") not in ["operator", "admin"]:
+    if user.get("user_role") not in ["operator", "admin", "super_admin"]:
         raise HTTPException(status_code=403, detail="Tur şirketi yetkisi gerekli")
     return user
+
+def require_role(*allowed_roles: str):
+    """Belirli rollere erişim izni veren esnek yetki kontrol fonksiyonu"""
+    def dependency(user: dict = Depends(get_current_user)) -> dict:
+        user_role = user.get("user_role", "")
+        if user_role not in allowed_roles and user_role != "super_admin":
+            raise HTTPException(status_code=403, detail="Bu işlem için yetkiniz yok")
+        return user
+    return dependency
 
 def get_optional_user(request: Request) -> Optional[dict]:
     """Opsiyonel kullanıcı kimlik doğrulaması - giriş yapmayan kullanıcılar için None döner"""
@@ -1568,6 +1570,129 @@ async def verify_license(operator_id: str, verified: bool, license_number: str =
     except Exception as e:
         log_security_event("LICENSE_VERIFY_ERROR", {"error": str(e)}, "ERROR")
         raise HTTPException(status_code=400, detail="Lisans doğrulanırken bir hata oluştu")
+
+# ===== ADMIN FILE MANAGER ROUTES =====
+# Supabase Storage ile dosya yönetimi (admin-documents bucket)
+
+ADMIN_FILES_BUCKET = "admin-documents"
+ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf", "text/csv"]
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+
+@app.post("/api/admin/files/upload")
+@limiter.limit("20/minute")
+async def admin_upload_file(
+    request: Request,
+    file: UploadFile = File(...),
+    category: str = "general",
+    user: dict = Depends(require_admin)
+):
+    """Admin dosya yükleme — Supabase Storage"""
+    try:
+        # Dosya doğrulama
+        if file.content_type not in ALLOWED_FILE_TYPES:
+            raise HTTPException(status_code=400, detail=f"Desteklenmeyen dosya tipi: {file.content_type}")
+        
+        contents = await file.read()
+        if len(contents) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=400, detail="Dosya boyutu 10MB'ı aşamaz")
+        
+        # Güvenli dosya adı
+        import uuid
+        safe_name = f"{category}/{uuid.uuid4().hex}_{file.filename}"
+        
+        # Supabase Storage'a yükle
+        storage_response = supabase.storage.from_(ADMIN_FILES_BUCKET).upload(
+            path=safe_name,
+            file=contents,
+            file_options={"content-type": file.content_type}
+        )
+        
+        log_security_event("ADMIN_FILE_UPLOAD", {
+            "admin": user.get("email"),
+            "file": safe_name,
+            "size": len(contents),
+            "category": category
+        })
+        
+        return {
+            "success": True,
+            "file_path": safe_name,
+            "file_name": file.filename,
+            "file_size": len(contents),
+            "content_type": file.content_type,
+            "category": category
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        log_security_event("ADMIN_FILE_UPLOAD_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Dosya yüklenirken bir hata oluştu")
+
+@app.get("/api/admin/files")
+async def admin_list_files(
+    category: str = "general",
+    user: dict = Depends(require_admin)
+):
+    """Admin dosya listesi — Supabase Storage"""
+    try:
+        files = supabase.storage.from_(ADMIN_FILES_BUCKET).list(
+            path=category,
+            options={"limit": 100, "sortBy": {"column": "created_at", "order": "desc"}}
+        )
+        
+        file_list = []
+        for f in files:
+            if f.get("name") and not f["name"].startswith("."):
+                file_list.append({
+                    "id": f.get("id"),
+                    "name": f.get("name"),
+                    "size": f.get("metadata", {}).get("size", 0),
+                    "content_type": f.get("metadata", {}).get("mimetype", ""),
+                    "created_at": f.get("created_at"),
+                    "updated_at": f.get("updated_at"),
+                    "category": category,
+                    "path": f"{category}/{f.get('name')}"
+                })
+        
+        return {"files": file_list}
+    except Exception as e:
+        log_security_event("ADMIN_FILE_LIST_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Dosya listesi alınırken bir hata oluştu")
+
+@app.delete("/api/admin/files")
+async def admin_delete_file(
+    file_path: str,
+    user: dict = Depends(require_admin)
+):
+    """Admin dosya silme — Supabase Storage"""
+    try:
+        supabase.storage.from_(ADMIN_FILES_BUCKET).remove([file_path])
+        
+        log_security_event("ADMIN_FILE_DELETE", {
+            "admin": user.get("email"),
+            "file": file_path
+        })
+        
+        return {"success": True, "deleted": file_path}
+    except Exception as e:
+        log_security_event("ADMIN_FILE_DELETE_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Dosya silinirken bir hata oluştu")
+
+@app.get("/api/admin/files/url")
+async def admin_get_file_url(
+    file_path: str,
+    user: dict = Depends(require_admin)
+):
+    """Admin dosya URL'i — Signed URL oluşturur (1 saat geçerli)"""
+    try:
+        signed = supabase.storage.from_(ADMIN_FILES_BUCKET).create_signed_url(
+            path=file_path,
+            expires_in=3600
+        )
+        return {"url": signed.get("signedURL") or signed.get("signedUrl", "")}
+    except Exception as e:
+        log_security_event("ADMIN_FILE_URL_ERROR", {"error": str(e)}, "ERROR")
+        raise HTTPException(status_code=500, detail="Dosya URL'i oluşturulurken bir hata oluştu")
 
 # ===== FAVORITES ROUTES =====
 # Favori = Niyet göstergesi (intent indicator)

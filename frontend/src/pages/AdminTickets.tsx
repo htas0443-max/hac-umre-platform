@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Ticket, Inbox } from 'lucide-react';
 import { ticketsApi } from '../api';
 import { useSEO } from '../hooks/useSEO';
+import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
+import { toast } from 'sonner';
 import type { Ticket as TicketType } from '../types';
 import StatusBadge from '../components/StatusBadge';
 import Breadcrumb from '../components/Breadcrumb';
@@ -46,7 +48,7 @@ export default function AdminTickets() {
         loadTickets();
     }, [activeTab]);
 
-    const loadTickets = async () => {
+    const loadTickets = useCallback(async () => {
         try {
             setLoading(true);
             const data = await ticketsApi.getAllTickets({ status: activeTab || undefined });
@@ -64,7 +66,13 @@ export default function AdminTickets() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [activeTab]);
+
+    // 🔴 Realtime: Yeni destek bileti geldiğinde anlık güncelleme
+    useRealtimeSubscription('support_tickets', 'INSERT', () => {
+        toast.info('🎫 Yeni destek talebi geldi!', { duration: 5000 });
+        loadTickets();
+    });
 
     const filteredTickets = tickets.filter(t =>
         !searchQuery ||

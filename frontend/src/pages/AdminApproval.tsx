@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Crown, Search, CheckSquare, CheckCircle, XCircle, Clock, Building2, MapPin, Inbox } from 'lucide-react';
 import { adminApi, toursApi } from '../api';
 import { useSEO } from '../hooks/useSEO';
 import StatusBadge from '../components/StatusBadge';
 import Breadcrumb from '../components/Breadcrumb';
+import { useRealtimeSubscription } from '../hooks/useRealtimeSubscription';
+import { toast } from 'sonner';
 import type { Tour } from '../types';
 
 export default function AdminApproval() {
@@ -26,7 +28,7 @@ export default function AdminApproval() {
     loadPendingTours();
   }, []);
 
-  const loadPendingTours = async () => {
+  const loadPendingTours = useCallback(async () => {
     try {
       setLoading(true);
       const data = await toursApi.getAll({ status: 'pending', limit: 20 } as any);
@@ -36,7 +38,15 @@ export default function AdminApproval() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // 🔴 Realtime: Yeni pending tur geldiğinde anlık güncelleme
+  useRealtimeSubscription('tours', 'INSERT', (payload) => {
+    if (payload.new?.status === 'pending') {
+      toast.info('🆕 Yeni tur onay bekliyor!', { duration: 5000 });
+      loadPendingTours();
+    }
+  });
 
   // Filtered tours based on search
   const filteredTours = useMemo(() => {

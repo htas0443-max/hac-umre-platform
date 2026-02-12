@@ -44,6 +44,7 @@ const AdminTourCreate = React.lazy(() => import('./pages/AdminTourCreate'));
 const AdminLayout = React.lazy(() => import('./components/AdminLayout'));
 const AdminAuditLog = React.lazy(() => import('./pages/AdminAuditLog'));
 const AdminAnalytics = React.lazy(() => import('./pages/AdminAnalytics'));
+const AdminFileManager = React.lazy(() => import('./pages/AdminFileManager'));
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 // Loading component for Suspense fallback
@@ -80,7 +81,9 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
     return <div className="loading">Yükleniyor...</div>;
   }
 
-  return user && user.role === 'admin' ? <>{children}</> : <Navigate to="/" />;
+  // super_admin, admin ve support rolleri admin paneline erişebilir
+  const allowedRoles = ['super_admin', 'admin', 'support'];
+  return user && user.role && allowedRoles.includes(user.role) ? <>{children}</> : <Navigate to="/" />;
 }
 
 function OperatorRoute({ children }: { children: React.ReactNode }) {
@@ -163,6 +166,7 @@ function AppRoutes() {
                 <Route path="tickets/:id" element={<AdminTicketDetail />} />
                 <Route path="audit" element={<AdminAuditLog />} />
                 <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="files" element={<AdminFileManager />} />
               </Route>
 
               {/* Support Ticket Routes */}
