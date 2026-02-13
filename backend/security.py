@@ -531,11 +531,38 @@ def record_failed_login(ip: str):
             {"ip": ip, "attempts": failed_login_attempts[ip]},
             "CRITICAL"
         )
+        log_rate_limit_event(ip, endpoint="/api/auth/login", blocked=True, reason=f"Brute force: {failed_login_attempts[ip]} failed attempts")
 
 def record_successful_login(ip: str):
     """Clear failed attempts on successful login"""
     if ip in failed_login_attempts:
         failed_login_attempts[ip] = 0
+
+
+# ============================================
+# RATE LIMIT DB LOGGING
+# ============================================
+
+def log_rate_limit_event(ip_address: str, endpoint: str = "", blocked: bool = True, reason: str = ""):
+    """
+    Log rate limit events to the rate_limit_logs table for the admin dashboard.
+    This is a fire-and-forget operation — failures are silently ignored.
+    """
+    try:
+        # Import here to avoid circular imports
+        from supabase import create_client, Client
+        supabase_url = os.getenv("SUPABASE_URL", "")
+        supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+        if supabase_url and supabase_key:
+            sb: Client = create_client(supabase_url, supabase_key)
+            sb.table("rate_limit_logs").insert({
+                "ip_address": ip_address,
+                "endpoint": endpoint[:200] if endpoint else "",
+                "blocked": blocked,
+                "reason": reason[:200] if reason else "",
+            }).execute()
+    except Exception:
+        pass  # Fire-and-forget — never break the request flow
 
 
 # ============================================

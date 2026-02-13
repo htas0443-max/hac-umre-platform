@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BarChart3, Clock, CheckCircle, Users, Building2, Heart, TrendingUp } from 'lucide-react';
-import { toursApi } from '../api';
+import { toursApi, adminApi } from '../api';
 import { supabase } from '../lib/supabase';
 import { useSEO } from '../hooks/useSEO';
 import Breadcrumb from '../components/Breadcrumb';
@@ -38,6 +38,13 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [recentPending, setRecentPending] = useState<any[]>([]);
     const [activities, setActivities] = useState<ActivityItem[]>([]);
+    const [systemStatus, setSystemStatus] = useState<{
+        emailPending: number; emailSent: number; emailFailed: number;
+        scheduledPending: number; rateLimitBlocked: number;
+    }>({
+        emailPending: 0, emailSent: 0, emailFailed: 0,
+        scheduledPending: 0, rateLimitBlocked: 0,
+    });
 
     // SEO: noindex - admin paneli indexlenmemeli
     useSEO({ title: 'Admin Dashboard', noIndex: true });
@@ -73,6 +80,24 @@ export default function AdminDashboard() {
 
             setRecentPending(pendingTours.tours.slice(0, 5));
             setActivities(auditResult.data || []);
+
+            // Load system status (fire-and-forget)
+            try {
+                const [emailStats, rateLimitStats] = await Promise.all([
+                    adminApi.getEmailQueue({}).catch(() => ({ data: [] })),
+                    adminApi.getRateLimitStats().catch(() => ({ blocked_24h: 0 })),
+                ]);
+                const emails = emailStats?.data || [];
+                setSystemStatus({
+                    emailPending: emails.filter((e: any) => e.status === 'pending').length,
+                    emailSent: emails.filter((e: any) => e.status === 'sent').length,
+                    emailFailed: emails.filter((e: any) => e.status === 'failed').length,
+                    scheduledPending: 0,
+                    rateLimitBlocked: rateLimitStats?.blocked_24h || 0,
+                });
+            } catch {
+                // Silent fail — system widgets are informational
+            }
         } catch (err) {
             console.error('Dashboard verisi yüklenemedi:', err);
         } finally {
@@ -263,6 +288,45 @@ export default function AdminDashboard() {
                     </Link>
                 </div>
             </div>
+
+            {/* Sistem Durumu Widgets */}
+            <motion.div
+                style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+            >
+                <Link to="/admin/email-queue" style={{ textDecoration: 'none' }}>
+                    <div className="card" style={{ padding: '1rem', borderLeft: '3px solid #6366F1' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem' }}>📧 Email Kuyruk</div>
+                        <div style={{ display: 'flex', gap: '0.75rem', fontSize: '0.85rem' }}>
+                            <span title="Bekleyen" style={{ color: '#F59E0B' }}>⏳ {systemStatus.emailPending}</span>
+                            <span title="Gönderilen" style={{ color: '#10B981' }}>✓ {systemStatus.emailSent}</span>
+                            <span title="Başarısız" style={{ color: '#EF4444' }}>✗ {systemStatus.emailFailed}</span>
+                        </div>
+                    </div>
+                </Link>
+                <Link to="/admin/scheduled-actions" style={{ textDecoration: 'none' }}>
+                    <div className="card" style={{ padding: '1rem', borderLeft: '3px solid #8B5CF6' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem' }}>🗓️ Zamanlanmış</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1a1a1a' }}>{systemStatus.scheduledPending} bekleyen</div>
+                    </div>
+                </Link>
+                <Link to="/admin/rate-limits" style={{ textDecoration: 'none' }}>
+                    <div className="card" style={{ padding: '1rem', borderLeft: '3px solid #EF4444' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem' }}>🔒 Rate Limit</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: systemStatus.rateLimitBlocked > 0 ? '#EF4444' : '#10B981' }}>
+                            {systemStatus.rateLimitBlocked} engelleme <span style={{ fontSize: '0.7rem', color: '#9CA3AF' }}>/ 24s</span>
+                        </div>
+                    </div>
+                </Link>
+                <Link to="/admin/system-info" style={{ textDecoration: 'none' }}>
+                    <div className="card" style={{ padding: '1rem', borderLeft: '3px solid #10B981' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase', marginBottom: '0.5rem' }}>💾 Sistem</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#10B981' }}>● Aktif</div>
+                    </div>
+                </Link>
+            </motion.div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.5rem' }}>
                 {/* Recent Pending Tours */}

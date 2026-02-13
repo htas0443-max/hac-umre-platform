@@ -59,3 +59,44 @@ CREATE TABLE IF NOT EXISTS scheduled_actions (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_scheduled_status ON scheduled_actions (status, scheduled_at);
+
+-- ============================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- ============================================
+
+-- 5. user_notifications — users can only see their own
+ALTER TABLE user_notifications ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can read own notifications"
+  ON user_notifications FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own notifications"
+  ON user_notifications FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Service role full access on user_notifications"
+  ON user_notifications FOR ALL
+  USING (auth.role() = 'service_role');
+
+-- 6. rate_limit_logs — admin read-only, service role inserts
+ALTER TABLE rate_limit_logs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Service role full access on rate_limit_logs"
+  ON rate_limit_logs FOR ALL
+  USING (auth.role() = 'service_role');
+
+-- 7. email_queue — admin read + update (retry), service role full
+ALTER TABLE email_queue ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Service role full access on email_queue"
+  ON email_queue FOR ALL
+  USING (auth.role() = 'service_role');
+
+-- 8. scheduled_actions — admin CRUD, service role for execution
+ALTER TABLE scheduled_actions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Service role full access on scheduled_actions"
+  ON scheduled_actions FOR ALL
+  USING (auth.role() = 'service_role');

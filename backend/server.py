@@ -1068,6 +1068,24 @@ async def approve_tour(tour_id: int, request: Request, user: dict = Depends(requ
         # Audit Log
         await write_audit_log(request, user["id"], "admin", "tour.approve", "tour", tour_id)
         
+        # Notify operator via in-app + email
+        try:
+            tour_data = supabase.table("tours").select("user_id, title, operator").eq("id", tour_id).single().execute()
+            if tour_data.data and tour_data.data.get('user_id'):
+                op_id = tour_data.data['user_id']
+                tour_title = tour_data.data.get('title', f'Tur #{tour_id}')
+                await send_user_notification(op_id, "Tur Onaylandı ✅", f"\"{tour_title}\" turunuz onaylandı ve yayında!", "success", "/operator/tours")
+                # Email notification
+                op_info = supabase.table("users").select("email").eq("id", op_id).single().execute()
+                if op_info.data and op_info.data.get('email'):
+                    await queue_email(
+                        op_info.data['email'],
+                        f"Turunuz Onaylandı: {tour_title}",
+                        f"<h2>Turunuz Onaylandı ✅</h2><p><strong>{tour_title}</strong> turunuz admin tarafından onaylanmıştır ve artık platformda yayındadır.</p><p>Hac & Umre Platformu</p>"
+                    )
+        except Exception:
+            pass  # Don't fail approval if notification fails
+        
         return response.data
     except Exception as e:
         log_security_event("TOUR_APPROVE_ERROR", {"error": str(e)}, "ERROR")
@@ -1086,6 +1104,24 @@ async def reject_tour(tour_id: int, reason: str, request: Request, user: dict = 
         
         # Audit Log
         await write_audit_log(request, user["id"], "admin", "tour.reject", "tour", tour_id, {"reason": reason})
+        
+        # Notify operator via in-app + email
+        try:
+            tour_data = supabase.table("tours").select("user_id, title, operator").eq("id", tour_id).single().execute()
+            if tour_data.data and tour_data.data.get('user_id'):
+                op_id = tour_data.data['user_id']
+                tour_title = tour_data.data.get('title', f'Tur #{tour_id}')
+                await send_user_notification(op_id, "Tur Reddedildi ❌", f"\"{tour_title}\" turunuz reddedildi. Sebep: {reason}", "error", "/operator/tours")
+                # Email notification
+                op_info = supabase.table("users").select("email").eq("id", op_id).single().execute()
+                if op_info.data and op_info.data.get('email'):
+                    await queue_email(
+                        op_info.data['email'],
+                        f"Turunuz Reddedildi: {tour_title}",
+                        f"<h2>Turunuz Reddedildi ❌</h2><p><strong>{tour_title}</strong> turunuz reddedilmiştir.</p><p><strong>Sebep:</strong> {reason}</p><p>Düzenleyip tekrar gönderebilirsiniz.</p><p>Hac & Umre Platformu</p>"
+                    )
+        except Exception:
+            pass  # Don't fail rejection if notification fails
         
         return response.data
     except Exception as e:
@@ -1238,17 +1274,19 @@ async def chat(request: Request, chat_request: ChatRequest):
         
         # ===== DYNAMIC RATE LIMITING =====
         from cache import check_user_rate_limit
-        from security import get_secure_client_ip
+        from security import get_secure_client_ip, log_rate_limit_event
         
         if user:
             # Authenticated users: 100 requests/hour
             user_id = user.get("id", "unknown")
             if not await check_user_rate_limit(user_id, limit=100, window=3600):
+                log_rate_limit_event(get_secure_client_ip(request), endpoint="/api/chat", blocked=True, reason="User hourly limit exceeded")
                 raise HTTPException(status_code=429, detail="Saatlik sınırınıza ulaştınız. Lütfen bekleyin.")
         else:
             # Anonymous users: 20 requests/hour (via IP)
             client_ip = get_secure_client_ip(request)
             if not await check_user_rate_limit(f"anon:{client_ip}", limit=20, window=3600):
+                log_rate_limit_event(client_ip, endpoint="/api/chat", blocked=True, reason="Anonymous hourly limit exceeded")
                 raise HTTPException(status_code=429, detail="Anonim kullanıcı sınırına ulaştınız. Giriş yaparak daha fazla mesaj gönderebilirsiniz.")
         
         # ===== ANONIM KULLANICI GÜVENLİK KONTROLLARI =====
@@ -3705,32 +3743,61 @@ async def _execute_scheduled_actions():
 
 @app.get("/api/admin/operator-performance")
 async def get_operator_performance(user: dict = Depends(require_admin)):
-    """Operatör performans metrikleri"""
+    """Operatör performans metrikleri — Batch queries (N+1 fixed)"""
     try:
-        # Tüm operatörleri al
+        # 1. Tüm operatörleri al (1 query)
         operators = supabase.table("users").select(
             "id, email, company_name, created_at"
         ).eq("user_role", "operator").execute()
 
+        op_ids = [op['id'] for op in (operators.data or [])]
+        if not op_ids:
+            return {"operators": []}
+
+        # 2. Tüm turları batch olarak al (1 query)
+        all_tours = supabase.table("tours").select(
+            "user_id, status"
+        ).in_("user_id", op_ids).execute()
+
+        # Group tours by operator
+        tours_by_op: dict = {}
+        for t in (all_tours.data or []):
+            uid = t['user_id']
+            if uid not in tours_by_op:
+                tours_by_op[uid] = []
+            tours_by_op[uid].append(t)
+
+        # 3. Tüm review'ları batch olarak al (1 query)
+        all_reviews_data = []
+        try:
+            all_reviews = supabase.table("reviews").select(
+                "operator_id, rating"
+            ).in_("operator_id", op_ids).execute()
+            all_reviews_data = all_reviews.data or []
+        except Exception:
+            pass  # reviews tablosu yoksa atla
+
+        # Group reviews by operator
+        reviews_by_op: dict = {}
+        for r in all_reviews_data:
+            oid = r.get('operator_id')
+            if oid:
+                if oid not in reviews_by_op:
+                    reviews_by_op[oid] = []
+                reviews_by_op[oid].append(r)
+
+        # Build performance list in-memory (0 additional queries)
         performance = []
         for op in (operators.data or []):
             op_id = op['id']
+            op_tours = tours_by_op.get(op_id, [])
+            total_tours = len(op_tours)
+            approved = sum(1 for t in op_tours if t.get('status') == 'approved')
+            rejected = sum(1 for t in op_tours if t.get('status') == 'rejected')
 
-            # Turları
-            tours = supabase.table("tours").select("id, status", count="exact").eq("user_id", op_id).execute()
-            total_tours = tours.count or 0
-            approved = sum(1 for t in (tours.data or []) if t.get('status') == 'approved')
-            rejected = sum(1 for t in (tours.data or []) if t.get('status') == 'rejected')
-
-            # Ortalama rating (reviews tablosu varsa)
-            avg_rating = 0
-            try:
-                reviews = supabase.table("reviews").select("rating").eq("operator_id", op_id).execute()
-                if reviews.data:
-                    ratings = [r['rating'] for r in reviews.data if r.get('rating')]
-                    avg_rating = round(sum(ratings) / len(ratings), 1) if ratings else 0
-            except Exception:
-                pass
+            op_reviews = reviews_by_op.get(op_id, [])
+            ratings = [r['rating'] for r in op_reviews if r.get('rating')]
+            avg_rating = round(sum(ratings) / len(ratings), 1) if ratings else 0
 
             performance.append({
                 "id": op_id,

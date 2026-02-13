@@ -359,6 +359,26 @@ export const adminApi = {
   },
 };
 
+// User Notifications API (In-App Bell)
+export const notificationsApi = {
+  getMy: async (page: number = 0) => {
+    const response = await api.get('/api/notifications/my', { params: { page } });
+    return response.data;
+  },
+  getUnreadCount: async () => {
+    const response = await api.get('/api/notifications/unread-count');
+    return response.data;
+  },
+  markRead: async (id: string) => {
+    const response = await api.patch(`/api/notifications/${id}/read`);
+    return response.data;
+  },
+  markAllRead: async () => {
+    const response = await api.patch('/api/notifications/mark-all-read');
+    return response.data;
+  },
+};
+
 // Tickets API
 export const ticketsApi = {
   // User: Get my tickets

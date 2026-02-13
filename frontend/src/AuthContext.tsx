@@ -109,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const login = async (email: string, password: string, turnstile_token?: string): Promise<{ requiresOTP: boolean; email?: string }> => {
+  const login = async (email: string, password: string, turnstile_token?: string): Promise<{ requiresOTP: boolean; email?: string; user?: User }> => {
     try {
       const data = await authApi.login(email, password, turnstile_token);
       // Backend returns { token, user } — check role for 2FA requirement

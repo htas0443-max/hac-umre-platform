@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import api from '../api';
+import { notificationsApi } from '../api';
 import { useAuth } from '../AuthContext';
 
 interface Notification {
@@ -30,8 +30,8 @@ export default function NotificationBell() {
         if (!user) return;
         const fetchCount = async () => {
             try {
-                const res = await api.get('/api/notifications/unread-count');
-                setCount(res.data?.count || 0);
+                const res = await notificationsApi.getUnreadCount();
+                setCount(res?.count || 0);
             } catch { }
         };
         fetchCount();
@@ -51,8 +51,8 @@ export default function NotificationBell() {
     const fetchNotifications = async () => {
         setLoading(true);
         try {
-            const res = await api.get('/api/notifications/my', { params: { page: 0 } });
-            setNotifications(res.data?.data || []);
+            const res = await notificationsApi.getMy(0);
+            setNotifications(res?.data || []);
         } catch { } finally { setLoading(false); }
     };
 
@@ -63,7 +63,7 @@ export default function NotificationBell() {
 
     const markRead = async (id: string) => {
         try {
-            await api.patch(`/api/notifications/${id}/read`);
+            await notificationsApi.markRead(id);
             setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
             setCount(c => Math.max(0, c - 1));
         } catch { }
@@ -71,7 +71,7 @@ export default function NotificationBell() {
 
     const markAllRead = async () => {
         try {
-            await api.patch('/api/notifications/mark-all-read');
+            await notificationsApi.markAllRead();
             setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
             setCount(0);
         } catch { }
