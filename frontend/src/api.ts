@@ -2,8 +2,6 @@ import axios from 'axios';
 import type { Tour, ComparisonResult, AIProvider } from './types';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL || '';
-console.log('[API DEBUG] VITE_BACKEND_URL:', import.meta.env.VITE_BACKEND_URL);
-console.log('[API DEBUG] API_URL kullanılan:', API_URL);
 
 // ✅ 2️⃣ JWT TOKEN ONLY (Memory Storage)
 // Token'i localStorage yerine bellekte tutuyoruz.

@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 import os
 import asyncio
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -29,8 +30,42 @@ from logging_config import init_sentry, RequestLoggingMiddleware, logger
 # Initialize Sentry monitoring (production error tracking)
 init_sentry()
 
+
+# =========================================================================
+# LIFESPAN — Background task lifecycle (modern replacement for on_event)
+# =========================================================================
+from routes.monitoring_routes import (
+    _process_email_queue,
+    _execute_scheduled_actions,
+    _uptime_scheduler,
+)
+
+
+async def _combined_scheduler():
+    """Combined background scheduler: email queue + scheduled actions (every 30s)"""
+    while True:
+        try:
+            await asyncio.sleep(30)
+            await _process_email_queue()
+            await _execute_scheduled_actions()
+        except asyncio.CancelledError:
+            break
+        except Exception:
+            pass
+
+
+@asynccontextmanager
+async def lifespan(app):
+    """Modern lifespan handler — replaces deprecated on_event('startup'/'shutdown')"""
+    combined_task = asyncio.create_task(_combined_scheduler())
+    uptime_task = asyncio.create_task(_uptime_scheduler())
+    yield
+    combined_task.cancel()
+    uptime_task.cancel()
+
+
 # Initialize FastAPI app
-app = FastAPI(title="Hac & Umre Platformu API")
+app = FastAPI(title="Hac & Umre Platformu API", lifespan=lifespan)
 
 # -------------------------------------------------------------------------
 # ✅ 5️⃣ RATE LIMIT (BRUTE FORCE)
@@ -167,45 +202,8 @@ app.include_router(monitoring_router)
 
 
 # =========================================================================
-# BACKGROUND TASKS (email queue, scheduled actions, uptime)
+# BACKGROUND TASKS — moved to lifespan context manager above
 # =========================================================================
-from routes.monitoring_routes import (
-    _process_email_queue,
-    _execute_scheduled_actions,
-    _uptime_scheduler,
-)
-
-_combined_task = None
-_uptime_task = None
-
-
-async def _combined_scheduler():
-    """Combined background scheduler: email queue + scheduled actions (every 30s)"""
-    while True:
-        try:
-            await asyncio.sleep(30)
-            await _process_email_queue()
-            await _execute_scheduled_actions()
-        except asyncio.CancelledError:
-            break
-        except Exception:
-            pass
-
-
-@app.on_event("startup")
-async def start_background_tasks():
-    global _combined_task, _uptime_task
-    _combined_task = asyncio.create_task(_combined_scheduler())
-    _uptime_task = asyncio.create_task(_uptime_scheduler())
-
-
-@app.on_event("shutdown")
-async def stop_background_tasks():
-    global _combined_task, _uptime_task
-    if _combined_task:
-        _combined_task.cancel()
-    if _uptime_task:
-        _uptime_task.cancel()
 
 
 if __name__ == "__main__":
