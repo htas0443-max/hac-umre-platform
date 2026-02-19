@@ -31,6 +31,70 @@
   --shadow-gold: 0 4px 15px rgba(201, 162, 39, 0.2);
 }
 
+/* ═══════════════════════════════════════════
+   DARK THEME
+   ═══════════════════════════════════════════ */
+html.dark {
+  --primary-teal: #14B8A6;
+  --primary-teal-light: #2DD4BF;
+  --primary-teal-dark: #0D9488;
+
+  --accent-gold: #E8D7A0;
+  --accent-gold-light: #C9A227;
+
+  --bg-primary: #1e293b;
+  --bg-secondary: #0f172a;
+  --bg-tertiary: #334155;
+  --bg-islamic: #1a2332;
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --border-color: #334155;
+  --border-light: #1e293b;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --shadow-gold: 0 4px 15px rgba(232, 215, 160, 0.15);
+}
+
+html.dark body {
+  background: linear-gradient(135deg, #0f172a 0%, #1a2332 25%, #0f172a 50%, #1e293b 75%, #0f172a 100%);
+  color: var(--text-primary);
+}
+
+html.dark body::before {
+  opacity: 0.02;
+}
+
+html.dark .alert-success {
+  background: #064e3b;
+  color: #6ee7b7;
+  border-color: #065f46;
+}
+
+html.dark .alert-error {
+  background: #7f1d1d;
+  color: #fca5a5;
+  border-color: #991b1b;
+}
+
+html.dark .alert-info {
+  background: #1e3a5f;
+  color: #93c5fd;
+  border-color: #1e40af;
+}
+
+html.dark .islamic-card {
+  background: linear-gradient(180deg, #1e293b 0%, #1a2332 100%);
+}
+
+html.dark .trust-strip {
+  background: linear-gradient(180deg, #1e293b 0%, #1a2332 100%);
+}
+
 * {
   margin: 0;
   padding: 0;

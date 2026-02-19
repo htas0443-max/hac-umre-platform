@@ -81,6 +81,24 @@ export default defineConfig(({ mode }) => {
           chunkFileNames: 'assets/js/[hash].js',
           entryFileNames: 'assets/js/[hash].js',
           assetFileNames: 'assets/[ext]/[hash].[ext]',
+
+          // Vendor chunk splitting for better caching
+          manualChunks(id: string) {
+            if (id.includes('node_modules')) {
+              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+                return 'vendor-react';
+              }
+              if (id.includes('@radix-ui')) {
+                return 'vendor-radix';
+              }
+              if (id.includes('framer-motion')) {
+                return 'vendor-motion';
+              }
+              if (id.includes('@supabase')) {
+                return 'vendor-supabase';
+              }
+            }
+          },
         },
         plugins: [
           // JavaScript obfuscation (sadece production)

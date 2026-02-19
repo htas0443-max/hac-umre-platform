@@ -1,82 +1,89 @@
-import { memo, useState, useEffect } from 'react';
+import { memo, useState, useEffect, ReactNode } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../AuthContext';
 import { hasPermission, type Permission } from '../lib/permissions';
+import {
+    LayoutDashboard, CheckCircle, PlusCircle, Star, FileText,
+    Users, ShieldCheck, Ticket, BarChart3, TrendingUp, Trophy,
+    Shield, Clock, Lock, Mail, CalendarClock, Activity, HardDrive,
+    Flag, FileUp, FolderOpen, Bell, Settings, Globe,
+    User, LogOut, ChevronRight, Menu, X, Home
+} from 'lucide-react';
 
 interface MenuItem {
     path: string;
     label: string;
-    icon: string;
+    icon: ReactNode;
     badge?: number;
     requiredPermission?: Permission;
 }
 
 interface MenuSection {
     title: string;
-    icon: string;
+    icon: ReactNode;
     items: MenuItem[];
 }
 
 const adminMenuSections: MenuSection[] = [
     {
         title: 'Ana',
-        icon: '🏠',
+        icon: <Home size={14} />,
         items: [
-            { path: '/admin/dashboard', label: 'Dashboard', icon: '📊', requiredPermission: 'dashboard' },
+            { path: '/admin/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} />, requiredPermission: 'dashboard' },
         ],
     },
     {
         title: 'İçerik Yönetimi',
-        icon: '📄',
+        icon: <FileText size={14} />,
         items: [
-            { path: '/admin/approval', label: 'Tur Onayları', icon: '✅', requiredPermission: 'approval' },
-            { path: '/admin/add-tour', label: 'Yeni Tur Ekle', icon: '➕', requiredPermission: 'tours.create' },
-            { path: '/admin/reviews', label: 'Yorumlar', icon: '⭐', requiredPermission: 'reviews' },
-            { path: '/admin/cms', label: 'CMS', icon: '📝', requiredPermission: 'cms' },
+            { path: '/admin/approval', label: 'Tur Onayları', icon: <CheckCircle size={18} />, requiredPermission: 'approval' },
+            { path: '/admin/add-tour', label: 'Yeni Tur Ekle', icon: <PlusCircle size={18} />, requiredPermission: 'tours.create' },
+            { path: '/admin/reviews', label: 'Yorumlar', icon: <Star size={18} />, requiredPermission: 'reviews' },
+            { path: '/admin/cms', label: 'CMS', icon: <FileText size={18} />, requiredPermission: 'cms' },
         ],
     },
     {
         title: 'Kullanıcılar',
-        icon: '👥',
+        icon: <Users size={14} />,
         items: [
-            { path: '/admin/users', label: 'Kullanıcılar', icon: '👥', requiredPermission: 'users' },
-            { path: '/admin/verification', label: 'Operatör Doğrulama', icon: '🛡️', requiredPermission: 'verification' },
-            { path: '/admin/tickets', label: 'Destek Biletleri', icon: '🎫', requiredPermission: 'tickets' },
+            { path: '/admin/users', label: 'Kullanıcılar', icon: <Users size={18} />, requiredPermission: 'users' },
+            { path: '/admin/verification', label: 'Operatör Doğrulama', icon: <ShieldCheck size={18} />, requiredPermission: 'verification' },
+            { path: '/admin/tickets', label: 'Destek Biletleri', icon: <Ticket size={18} />, requiredPermission: 'tickets' },
         ],
     },
     {
         title: 'Raporlar',
-        icon: '📈',
+        icon: <BarChart3 size={14} />,
         items: [
-            { path: '/admin/reports', label: 'Raporlar', icon: '📋', requiredPermission: 'reports' },
-            { path: '/admin/analytics', label: 'Ajanta Analytics', icon: '📈', requiredPermission: 'analytics' },
-            { path: '/admin/operator-performance', label: 'Operatör Performans', icon: '🏆', requiredPermission: 'operator_perf' },
-            { path: '/admin/audit', label: 'Audit Log', icon: '🛡️', requiredPermission: 'audit' },
-            { path: '/admin/history', label: 'İşlem Geçmişi', icon: '🕐', requiredPermission: 'history' },
+            { path: '/admin/reports', label: 'Raporlar', icon: <BarChart3 size={18} />, requiredPermission: 'reports' },
+            { path: '/admin/analytics', label: 'Analytics', icon: <TrendingUp size={18} />, requiredPermission: 'analytics' },
+            { path: '/admin/operator-performance', label: 'Operatör Performans', icon: <Trophy size={18} />, requiredPermission: 'operator_perf' },
+            { path: '/admin/audit', label: 'Audit Log', icon: <Shield size={18} />, requiredPermission: 'audit' },
+            { path: '/admin/history', label: 'İşlem Geçmişi', icon: <Clock size={18} />, requiredPermission: 'history' },
         ],
     },
     {
         title: 'Sistem',
-        icon: '⚙️',
+        icon: <Settings size={14} />,
         items: [
-            { path: '/admin/rate-limits', label: 'Rate Limiting', icon: '🔒', requiredPermission: 'rate_limits' },
-            { path: '/admin/email-queue', label: 'Email Kuyruk', icon: '📧', requiredPermission: 'email_queue' },
-            { path: '/admin/scheduled-actions', label: 'Zamanlanmış', icon: '🗓️', requiredPermission: 'scheduled_actions' },
-            { path: '/admin/uptime', label: 'Uptime & SLA', icon: '📊', requiredPermission: 'uptime' },
-            { path: '/admin/system-info', label: 'Sistem Bilgisi', icon: '💾', requiredPermission: 'system_info' },
-            { path: '/admin/feature-flags', label: 'Feature Flags', icon: '🚩', requiredPermission: 'feature_flags' },
+            { path: '/admin/rate-limits', label: 'Rate Limiting', icon: <Lock size={18} />, requiredPermission: 'rate_limits' },
+            { path: '/admin/email-queue', label: 'Email Kuyruk', icon: <Mail size={18} />, requiredPermission: 'email_queue' },
+            { path: '/admin/scheduled-actions', label: 'Zamanlanmış', icon: <CalendarClock size={18} />, requiredPermission: 'scheduled_actions' },
+            { path: '/admin/uptime', label: 'Uptime & SLA', icon: <Activity size={18} />, requiredPermission: 'uptime' },
+            { path: '/admin/system-info', label: 'Sistem Bilgisi', icon: <HardDrive size={18} />, requiredPermission: 'system_info' },
+            { path: '/admin/feature-flags', label: 'Feature Flags', icon: <Flag size={18} />, requiredPermission: 'feature_flags' },
         ],
     },
     {
         title: 'Araçlar',
-        icon: '🔧',
+        icon: <Settings size={14} />,
         items: [
-            { path: '/admin/import', label: 'CSV Import', icon: '📥', requiredPermission: 'import' },
-            { path: '/admin/files', label: 'Dosya Yönetimi', icon: '📂', requiredPermission: 'files' },
-            { path: '/admin/notifications', label: 'Bildirimler', icon: '🔔', requiredPermission: 'notifications' },
-            { path: '/admin/settings', label: 'Ayarlar', icon: '⚙️', requiredPermission: 'settings' },
-            { path: '/tours', label: 'Tüm Turlar (Site)', icon: '🌍' },
+            { path: '/admin/import', label: 'CSV Import', icon: <FileUp size={18} />, requiredPermission: 'import' },
+            { path: '/admin/files', label: 'Dosya Yönetimi', icon: <FolderOpen size={18} />, requiredPermission: 'files' },
+            { path: '/admin/notifications', label: 'Bildirimler', icon: <Bell size={18} />, requiredPermission: 'notifications' },
+            { path: '/admin/settings', label: 'Ayarlar', icon: <Settings size={18} />, requiredPermission: 'settings' },
+            { path: '/tours', label: 'Tüm Turlar (Site)', icon: <Globe size={18} /> },
         ],
     },
 ];
@@ -92,7 +99,6 @@ const AdminSidebar = memo(function AdminSidebar({ pendingCount = 0 }: AdminSideb
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
 
-    // Auto-expand section containing the active route
     useEffect(() => {
         const currentPath = location.pathname;
         const newOpenSections: Record<string, boolean> = {};
@@ -102,18 +108,16 @@ const AdminSidebar = memo(function AdminSidebar({ pendingCount = 0 }: AdminSideb
                 newOpenSections[section.title] = true;
             }
         });
-        // Always keep 'Ana' open
         newOpenSections['Ana'] = true;
         setOpenSections(prev => ({ ...prev, ...newOpenSections }));
     }, [location.pathname]);
 
-    // Close mobile menu on route change
     useEffect(() => {
         setIsMobileOpen(false);
     }, [location.pathname]);
 
     const toggleSection = (title: string) => {
-        if (isCollapsed) return; // Don't toggle when collapsed
+        if (isCollapsed) return;
         setOpenSections(prev => ({ ...prev, [title]: !prev[title] }));
     };
 
@@ -133,16 +137,14 @@ const AdminSidebar = memo(function AdminSidebar({ pendingCount = 0 }: AdminSideb
 
     return (
         <>
-            {/* Mobile Toggle Button */}
             <button
                 className="admin-sidebar-mobile-toggle"
                 onClick={() => setIsMobileOpen(!isMobileOpen)}
                 aria-label="Toggle sidebar"
             >
-                {isMobileOpen ? '✕' : '☰'}
+                {isMobileOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
 
-            {/* Overlay for mobile */}
             <AnimatePresence>
                 {isMobileOpen && (
                     <motion.div
@@ -155,17 +157,17 @@ const AdminSidebar = memo(function AdminSidebar({ pendingCount = 0 }: AdminSideb
                 )}
             </AnimatePresence>
 
-            {/* Sidebar */}
             <motion.aside
                 className={`admin-sidebar ${isMobileOpen ? 'mobile-open' : ''}`}
                 variants={sidebarVariants}
                 animate={isCollapsed ? 'collapsed' : 'expanded'}
                 transition={{ duration: 0.2 }}
             >
-                {/* Header */}
                 <div className="admin-sidebar-header">
                     <Link to="/" className="admin-sidebar-logo">
-                        <span className="admin-sidebar-logo-icon">🕋</span>
+                        <span className="admin-sidebar-logo-icon">
+                            <Shield size={22} strokeWidth={2.5} />
+                        </span>
                         {!isCollapsed && <span className="admin-sidebar-logo-text">Admin Panel</span>}
                     </Link>
                     <button
@@ -173,43 +175,39 @@ const AdminSidebar = memo(function AdminSidebar({ pendingCount = 0 }: AdminSideb
                         onClick={() => setIsCollapsed(!isCollapsed)}
                         aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                     >
-                        {isCollapsed ? '→' : '←'}
+                        <ChevronRight
+                            size={16}
+                            style={{
+                                transform: isCollapsed ? 'rotate(0deg)' : 'rotate(180deg)',
+                                transition: 'transform 0.2s',
+                            }}
+                        />
                     </button>
                 </div>
 
-                {/* Navigation */}
                 <nav className="admin-sidebar-nav">
                     <ul className="admin-sidebar-menu">
                         {filteredSections.map((section) => (
                             <li key={section.title} className="admin-sidebar-section">
-                                {/* Section Header */}
                                 {!isCollapsed && section.title !== 'Ana' && (
                                     <button
                                         className="admin-sidebar-section-header"
                                         onClick={() => toggleSection(section.title)}
-                                        style={{
-                                            display: 'flex', alignItems: 'center', gap: '8px',
-                                            width: '100%', padding: '8px 16px', border: 'none',
-                                            background: 'transparent', cursor: 'pointer',
-                                            fontSize: '11px', fontWeight: 600, textTransform: 'uppercase',
-                                            letterSpacing: '0.5px', color: '#6b7280',
-                                            justifyContent: 'space-between',
-                                        }}
                                     >
                                         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                            <span>{section.icon}</span>
+                                            {section.icon}
                                             {section.title}
                                         </span>
-                                        <span style={{
-                                            transform: openSections[section.title] ? 'rotate(90deg)' : 'rotate(0deg)',
-                                            transition: 'transform 0.2s', fontSize: '10px',
-                                        }}>
-                                            ▶
-                                        </span>
+                                        <ChevronRight
+                                            size={12}
+                                            style={{
+                                                transform: openSections[section.title] ? 'rotate(90deg)' : 'rotate(0deg)',
+                                                transition: 'transform 0.2s',
+                                            }}
+                                        />
                                     </button>
                                 )}
 
-                                {/* Section Items */}
                                 <AnimatePresence initial={false}>
                                     {(isCollapsed || section.title === 'Ana' || openSections[section.title]) && (
                                         <motion.ul
@@ -250,7 +248,7 @@ const AdminSidebar = memo(function AdminSidebar({ pendingCount = 0 }: AdminSideb
                                                         >
                                                             <span className="admin-sidebar-link-icon">{item.icon}</span>
                                                             {!isCollapsed && (
-                                                                <span className="admin-sidebar-link-text">{item.label} ↗</span>
+                                                                <span className="admin-sidebar-link-text">{item.label}</span>
                                                             )}
                                                         </a>
                                                     )}
@@ -264,10 +262,9 @@ const AdminSidebar = memo(function AdminSidebar({ pendingCount = 0 }: AdminSideb
                     </ul>
                 </nav>
 
-                {/* Footer */}
                 <div className="admin-sidebar-footer">
                     <div className="admin-sidebar-user">
-                        <span className="admin-sidebar-user-icon">👤</span>
+                        <User size={18} style={{ opacity: 0.7 }} />
                         {!isCollapsed && (
                             <div className="admin-sidebar-user-info">
                                 <span className="admin-sidebar-user-email">{user?.email}</span>
@@ -280,7 +277,7 @@ const AdminSidebar = memo(function AdminSidebar({ pendingCount = 0 }: AdminSideb
                         className="admin-sidebar-logout"
                         title="Çıkış Yap"
                     >
-                        {isCollapsed ? '🚪' : 'Çıkış'}
+                        {isCollapsed ? <LogOut size={18} /> : 'Çıkış'}
                     </button>
                 </div>
             </motion.aside>

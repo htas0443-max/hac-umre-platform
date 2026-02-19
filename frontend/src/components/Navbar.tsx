@@ -5,6 +5,7 @@ import { Home, Globe, RefreshCw, BookOpen, BarChart3, CheckCircle, FolderUp, Hea
 import { useAuth } from '../AuthContext';
 import { useFavorites } from '../hooks/useFavorites';
 import NotificationBell from './NotificationBell';
+import ThemeToggle from './ThemeToggle';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -106,6 +107,7 @@ export default function Navbar() {
 
         {/* Desktop Auth Actions */}
         <div className="navbar-actions navbar-desktop">
+          <ThemeToggle />
           {user ? (
             <div className="navbar-user">
               <NotificationBell />
@@ -172,6 +174,9 @@ export default function Navbar() {
                   Profilim
                 </Link>
                 <div className="navbar-mobile-divider" />
+                <div style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <ThemeToggle /> <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Tema</span>
+                </div>
                 <span className="navbar-mobile-email">{user.email}</span>
                 <button onClick={() => { logout(); closeMenu(); }} className="btn btn-outline navbar-mobile-btn">
                   Çıkış Yap

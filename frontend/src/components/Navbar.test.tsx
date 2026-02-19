@@ -3,6 +3,20 @@ import { render } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Navbar from './Navbar';
 
+// Mock window.matchMedia for ThemeToggle / useTheme
+Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+    })),
+});
 // AuthContext mock — kullanıcı giriş yapmamış hali
 vi.mock('../AuthContext', () => ({
     useAuth: () => ({

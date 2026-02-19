@@ -5,78 +5,72 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import BottomNav from './components/BottomNav';
 import ErrorBoundary from './components/ErrorBoundary';
+import PageLoading from './components/PageLoading';
+import SectionErrorBoundary from './components/SectionErrorBoundary';
 // Password gate disabled - import PasswordGate from './components/PasswordGate';
 import { Toaster } from 'sonner';
 import './App.css';
 
 // Lazy load all pages for code splitting
-const Home = React.lazy(() => import('./pages/Home'));
-const Login = React.lazy(() => import('./pages/Login'));
-const Register = React.lazy(() => import('./pages/Register'));
-const OperatorRegister = React.lazy(() => import('./pages/OperatorRegister'));
-const ToursList = React.lazy(() => import('./pages/ToursList'));
-const TourDetail = React.lazy(() => import('./pages/TourDetail'));
-const Compare = React.lazy(() => import('./pages/Compare'));
-const Chat = React.lazy(() => import('./pages/Chat'));
-const AdminImport = React.lazy(() => import('./pages/AdminImport'));
-const AdminApproval = React.lazy(() => import('./pages/AdminApproval'));
-const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
-const OperatorDashboard = React.lazy(() => import('./pages/OperatorDashboard'));
-const OperatorTourForm = React.lazy(() => import('./pages/OperatorTourForm'));
-const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'));
-const ResetPassword = React.lazy(() => import('./pages/ResetPassword'));
-// Support Ticket Pages
-const SupportPage = React.lazy(() => import('./pages/SupportPage'));
-const MyTickets = React.lazy(() => import('./pages/MyTickets'));
-const TicketDetail = React.lazy(() => import('./pages/TicketDetail'));
-const AdminTickets = React.lazy(() => import('./pages/AdminTickets'));
-const AdminTicketDetail = React.lazy(() => import('./pages/AdminTicketDetail'));
-const EmailVerification = React.lazy(() => import('./pages/EmailVerification'));
-const AdminLogin = React.lazy(() => import('./pages/AdminLogin'));
-const TermsPage = React.lazy(() => import('./pages/TermsPage'));
-const PrivacyPage = React.lazy(() => import('./pages/PrivacyPage'));
-const VerificationPage = React.lazy(() => import('./pages/VerificationPage'));
-const TrustFaqPage = React.lazy(() => import('./pages/TrustFaqPage'));
-const Favorites = React.lazy(() => import('./pages/Favorites'));
-const Profile = React.lazy(() => import('./pages/Profile'));
-const AdminReviewModeration = React.lazy(() => import('./pages/AdminReviewModeration'));
-const AdminTourCreate = React.lazy(() => import('./pages/AdminTourCreate'));
-const AdminLayout = React.lazy(() => import('./components/AdminLayout'));
-const AdminAuditLog = React.lazy(() => import('./pages/AdminAuditLog'));
-const AdminAnalytics = React.lazy(() => import('./pages/AdminAnalytics'));
-const AdminFileManager = React.lazy(() => import('./pages/AdminFileManager'));
-const AdminUsers = React.lazy(() => import('./pages/AdminUsers'));
-const AdminVerification = React.lazy(() => import('./pages/AdminVerification'));
-const AdminNotifications = React.lazy(() => import('./pages/AdminNotifications'));
-const AdminSettings = React.lazy(() => import('./pages/AdminSettings'));
-const AdminCMS = React.lazy(() => import('./pages/AdminCMS'));
-const AdminReports = React.lazy(() => import('./pages/AdminReports'));
-const AdminHistory = React.lazy(() => import('./pages/AdminHistory'));
-const AdminFeatureFlags = React.lazy(() => import('./pages/AdminFeatureFlags'));
-const AdminUptime = React.lazy(() => import('./pages/AdminUptime'));
-const AdminRateLimits = React.lazy(() => import('./pages/AdminRateLimits'));
-const AdminEmailQueue = React.lazy(() => import('./pages/AdminEmailQueue'));
-const AdminScheduledActions = React.lazy(() => import('./pages/AdminScheduledActions'));
-const AdminOperatorPerformance = React.lazy(() => import('./pages/AdminOperatorPerformance'));
-const AdminSystemInfo = React.lazy(() => import('./pages/AdminSystemInfo'));
-const NotFound = React.lazy(() => import('./pages/NotFound'));
 
-// Loading component for Suspense fallback
-const PageLoading = () => (
-  <div className="loading" style={{
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '50vh',
-    fontSize: '1.25rem',
-    color: 'var(--primary-teal)'
-  }}>
-    <div style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🕋</div>
-      <div>Yükleniyor...</div>
-    </div>
-  </div>
-);
+// Public pages
+const Home = React.lazy(() => import('./pages/public/Home'));
+const ToursList = React.lazy(() => import('./pages/public/ToursList'));
+const TourDetail = React.lazy(() => import('./pages/public/TourDetail'));
+const Compare = React.lazy(() => import('./pages/public/Compare'));
+const Chat = React.lazy(() => import('./pages/public/Chat'));
+const Favorites = React.lazy(() => import('./pages/public/Favorites'));
+const Profile = React.lazy(() => import('./pages/public/Profile'));
+const SupportPage = React.lazy(() => import('./pages/public/SupportPage'));
+const MyTickets = React.lazy(() => import('./pages/public/MyTickets'));
+const TicketDetail = React.lazy(() => import('./pages/public/TicketDetail'));
+const TermsPage = React.lazy(() => import('./pages/public/TermsPage'));
+const PrivacyPage = React.lazy(() => import('./pages/public/PrivacyPage'));
+const TrustFaqPage = React.lazy(() => import('./pages/public/TrustFaqPage'));
+const NotFound = React.lazy(() => import('./pages/public/NotFound'));
+
+// Auth pages
+const Login = React.lazy(() => import('./pages/auth/Login'));
+const Register = React.lazy(() => import('./pages/auth/Register'));
+const ForgotPassword = React.lazy(() => import('./pages/auth/ForgotPassword'));
+const ResetPassword = React.lazy(() => import('./pages/auth/ResetPassword'));
+const EmailVerification = React.lazy(() => import('./pages/auth/EmailVerification'));
+const VerificationPage = React.lazy(() => import('./pages/auth/VerificationPage'));
+
+// Operator pages
+const OperatorRegister = React.lazy(() => import('./pages/operator/OperatorRegister'));
+const OperatorDashboard = React.lazy(() => import('./pages/operator/OperatorDashboard'));
+const OperatorTourForm = React.lazy(() => import('./pages/operator/OperatorTourForm'));
+
+// Admin pages
+const AdminLogin = React.lazy(() => import('./pages/admin/AdminLogin'));
+const AdminDashboard = React.lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminApproval = React.lazy(() => import('./pages/admin/AdminApproval'));
+const AdminImport = React.lazy(() => import('./pages/admin/AdminImport'));
+const AdminReviewModeration = React.lazy(() => import('./pages/admin/AdminReviewModeration'));
+const AdminTourCreate = React.lazy(() => import('./pages/admin/AdminTourCreate'));
+const AdminLayout = React.lazy(() => import('./components/AdminLayout'));
+const AdminAuditLog = React.lazy(() => import('./pages/admin/AdminAuditLog'));
+const AdminAnalytics = React.lazy(() => import('./pages/admin/AdminAnalytics'));
+const AdminFileManager = React.lazy(() => import('./pages/admin/AdminFileManager'));
+const AdminUsers = React.lazy(() => import('./pages/admin/AdminUsers'));
+const AdminVerification = React.lazy(() => import('./pages/admin/AdminVerification'));
+const AdminNotifications = React.lazy(() => import('./pages/admin/AdminNotifications'));
+const AdminSettings = React.lazy(() => import('./pages/admin/AdminSettings'));
+const AdminCMS = React.lazy(() => import('./pages/admin/AdminCMS'));
+const AdminReports = React.lazy(() => import('./pages/admin/AdminReports'));
+const AdminHistory = React.lazy(() => import('./pages/admin/AdminHistory'));
+const AdminFeatureFlags = React.lazy(() => import('./pages/admin/AdminFeatureFlags'));
+const AdminUptime = React.lazy(() => import('./pages/admin/AdminUptime'));
+const AdminRateLimits = React.lazy(() => import('./pages/admin/AdminRateLimits'));
+const AdminEmailQueue = React.lazy(() => import('./pages/admin/AdminEmailQueue'));
+const AdminScheduledActions = React.lazy(() => import('./pages/admin/AdminScheduledActions'));
+const AdminOperatorPerformance = React.lazy(() => import('./pages/admin/AdminOperatorPerformance'));
+const AdminSystemInfo = React.lazy(() => import('./pages/admin/AdminSystemInfo'));
+const AdminTickets = React.lazy(() => import('./pages/admin/AdminTickets'));
+const AdminTicketDetail = React.lazy(() => import('./pages/admin/AdminTicketDetail'));
+
+
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -145,7 +139,9 @@ function AppRoutes() {
                 path="/operator/dashboard"
                 element={
                   <OperatorRoute>
-                    <OperatorDashboard />
+                    <SectionErrorBoundary sectionName="Operatör Paneli">
+                      <OperatorDashboard />
+                    </SectionErrorBoundary>
                   </OperatorRoute>
                 }
               />
@@ -153,7 +149,9 @@ function AppRoutes() {
                 path="/operator/create"
                 element={
                   <OperatorRoute>
-                    <OperatorTourForm />
+                    <SectionErrorBoundary sectionName="Operatör Paneli">
+                      <OperatorTourForm />
+                    </SectionErrorBoundary>
                   </OperatorRoute>
                 }
               />
@@ -161,7 +159,9 @@ function AppRoutes() {
                 path="/operator/edit/:id"
                 element={
                   <OperatorRoute>
-                    <OperatorTourForm />
+                    <SectionErrorBoundary sectionName="Operatör Paneli">
+                      <OperatorTourForm />
+                    </SectionErrorBoundary>
                   </OperatorRoute>
                 }
               />
@@ -169,7 +169,7 @@ function AppRoutes() {
               {/* ═══════════════════════════════════════════
                   ADMIN ROUTES - Nested Layout with Sidebar
                   ═══════════════════════════════════════════ */}
-              <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+              <Route path="/admin" element={<AdminRoute><SectionErrorBoundary sectionName="Admin Paneli"><AdminLayout /></SectionErrorBoundary></AdminRoute>}>
                 <Route path="dashboard" element={<AdminDashboard />} />
                 <Route path="approval" element={<AdminApproval />} />
                 <Route path="import" element={<AdminImport />} />
