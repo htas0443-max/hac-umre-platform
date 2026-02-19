@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './AuthContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import BottomNav from './components/BottomNav';
+import Breadcrumb from './components/Breadcrumb';
 import ErrorBoundary from './components/ErrorBoundary';
 import PageLoading from './components/PageLoading';
 import SectionErrorBoundary from './components/SectionErrorBoundary';
@@ -112,6 +113,7 @@ function AppRoutes() {
   return (
     <div className="app">
       {!isAdminRoute && <Navbar />}
+      {!isAdminRoute && <Breadcrumb />}
       <main className={isAdminRoute ? undefined : "main-content"}>
         <ErrorBoundary>
           <Suspense fallback={<PageLoading />}>

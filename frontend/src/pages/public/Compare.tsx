@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, Brain, Zap, Bot, Building2, Building, Package, Sparkles, BarChart3, Target, Trophy, Search, Globe, Share2, Check } from 'lucide-react';
+import { RefreshCw, Brain, Zap, Bot, Building2, Building, Package, Sparkles, BarChart3, Target, Trophy, Search, Globe, Share2, Check, LayoutGrid, Table2 } from 'lucide-react';
 import { toursApi, aiApi } from '../../api';
 import { useSEO } from '../../hooks/useSEO';
 import { toast } from 'sonner';
@@ -21,6 +21,7 @@ export default function Compare() {
   const [error, setError] = useState('');
   const [provider, setProvider] = useState('anthropic');
   const [copied, setCopied] = useState(false);
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
 
   useEffect(() => {
     const tourIds = searchParams.get('tours')?.split(',') || [];
@@ -214,52 +215,145 @@ export default function Compare() {
         </motion.button>
       </motion.div>
 
-      {/* Tours Grid */}
-      <motion.div
-        className="grid grid-3"
-        style={{ marginBottom: '3rem' }}
-        initial="hidden"
-        animate="visible"
-        variants={{
-          visible: { transition: { staggerChildren: 0.1 } }
-        }}
-      >
-        {tours.map((tour, idx) => (
-          <motion.div
-            key={tour._id}
-            className="card hover-lift"
-            data-testid={`compare-tour-${idx}`}
-            variants={{
-              hidden: { opacity: 0, scale: 0.8 },
-              visible: { opacity: 1, scale: 1 }
-            }}
-            whileHover={{ scale: 1.05 }}
+      {/* View Toggle */}
+      {tours.length >= 2 && (
+        <div className="compare-view-toggle">
+          <button
+            className={`compare-view-btn ${viewMode === 'card' ? 'active' : ''}`}
+            onClick={() => setViewMode('card')}
+            data-testid="view-card-btn"
           >
-            <h3 style={{ marginBottom: '1rem' }}>{tour.title}</h3>
+            <LayoutGrid size={16} /> Kart
+          </button>
+          <button
+            className={`compare-view-btn ${viewMode === 'table' ? 'active' : ''}`}
+            onClick={() => setViewMode('table')}
+            data-testid="view-table-btn"
+          >
+            <Table2 size={16} /> Tablo
+          </button>
+        </div>
+      )}
+
+      {/* Table View */}
+      {viewMode === 'table' && tours.length >= 2 && (
+        <motion.div
+          className="compare-table-wrapper"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ marginBottom: '2rem' }}
+        >
+          <table className="compare-table">
+            <thead>
+              <tr>
+                <th>Özellik</th>
+                {tours.map((tour, idx) => (
+                  <th key={tour._id}>Tur {idx + 1}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Tur Adı</td>
+                {tours.map(t => <td key={t._id}><strong>{t.title}</strong></td>)}
+              </tr>
+              <tr>
+                <td>Fiyat</td>
+                {tours.map(t => <td key={t._id} className="compare-price">{formatPrice(t.price, t.currency)}</td>)}
+              </tr>
+              <tr>
+                <td>Süre</td>
+                {tours.map(t => <td key={t._id}>{t.duration}</td>)}
+              </tr>
+              <tr>
+                <td>Otel</td>
+                {tours.map(t => <td key={t._id}>{t.hotel}</td>)}
+              </tr>
+              <tr>
+                <td>Operatör</td>
+                {tours.map(t => <td key={t._id}>{t.operator}</td>)}
+              </tr>
+              <tr>
+                <td>Ulaşım</td>
+                {tours.map(t => <td key={t._id}>{t.transport}</td>)}
+              </tr>
+              <tr>
+                <td>Rehber</td>
+                {tours.map(t => <td key={t._id}>{t.guide}</td>)}
+              </tr>
+              <tr>
+                <td>Vize</td>
+                {tours.map(t => <td key={t._id}>{t.visa}</td>)}
+              </tr>
+              <tr>
+                <td>Hizmetler</td>
+                {tours.map(t => (
+                  <td key={t._id}>
+                    <div className="compare-services">
+                      {t.services.map((s, i) => (
+                        <span key={i} className="badge badge-primary" style={{ fontSize: '0.7rem' }}>{s}</span>
+                      ))}
+                    </div>
+                  </td>
+                ))}
+              </tr>
+              <tr>
+                <td>Tarih</td>
+                {tours.map(t => <td key={t._id}>{t.start_date} – {t.end_date}</td>)}
+              </tr>
+            </tbody>
+          </table>
+        </motion.div>
+      )}
+
+      {/* Card View (existing) */}
+      {viewMode === 'card' && (
+        <motion.div
+          className="grid grid-3"
+          style={{ marginBottom: '3rem' }}
+          initial="hidden"
+          animate="visible"
+          variants={{
+            visible: { transition: { staggerChildren: 0.1 } }
+          }}
+        >
+          {tours.map((tour, idx) => (
             <motion.div
-              style={{
-                fontSize: '1.75rem',
-                fontWeight: 700,
-                color: 'var(--primary-emerald)',
-                marginBottom: '0.75rem'
+              key={tour._id}
+              className="card hover-lift"
+              data-testid={`compare-tour-${idx}`}
+              variants={{
+                hidden: { opacity: 0, scale: 0.8 },
+                visible: { opacity: 1, scale: 1 }
               }}
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: idx * 0.1 + 0.3, type: 'spring' }}
+              whileHover={{ scale: 1.05 }}
             >
-              {formatPrice(tour.price, tour.currency)}
+              <h3 style={{ marginBottom: '1rem' }}>{tour.title}</h3>
+              <motion.div
+                style={{
+                  fontSize: '1.75rem',
+                  fontWeight: 700,
+                  color: 'var(--primary-emerald)',
+                  marginBottom: '0.75rem'
+                }}
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: idx * 0.1 + 0.3, type: 'spring' }}
+              >
+                {formatPrice(tour.price, tour.currency)}
+              </motion.div>
+              <div style={{ marginBottom: '1rem' }}>
+                <span className="badge badge-primary">{tour.duration}</span>
+              </div>
+              <div style={{ fontSize: '0.875rem', color: 'var(--neutral-gray-700)', lineHeight: 1.7 }}>
+                <p style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Building2 size={14} color="var(--primary-teal)" /> <strong>Otel:</strong> {tour.hotel}</p>
+                <p style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Building size={14} color="var(--primary-teal)" /> <strong>Operatör:</strong> {tour.operator}</p>
+                <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Package size={14} color="var(--primary-teal)" /> <strong>Hizmetler:</strong> {tour.services.length} adet</p>
+              </div>
             </motion.div>
-            <div style={{ marginBottom: '1rem' }}>
-              <span className="badge badge-primary">{tour.duration}</span>
-            </div>
-            <div style={{ fontSize: '0.875rem', color: 'var(--neutral-gray-700)', lineHeight: 1.7 }}>
-              <p style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Building2 size={14} color="var(--primary-teal)" /> <strong>Otel:</strong> {tour.hotel}</p>
-              <p style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Building size={14} color="var(--primary-teal)" /> <strong>Operatör:</strong> {tour.operator}</p>
-              <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Package size={14} color="var(--primary-teal)" /> <strong>Hizmetler:</strong> {tour.services.length} adet</p>
-            </div>
-          </motion.div>
-        ))}
-      </motion.div>
+          ))}
+        </motion.div>
+      )}
 
       {/* Comparison Results */}
       <AnimatePresence>

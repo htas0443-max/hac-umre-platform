@@ -8,6 +8,7 @@ import { useRecentlyViewed } from '../../hooks/useRecentlyViewed';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import StickyCTA from '../../components/StickyCTA';
 import FavoriteButton from '../../components/FavoriteButton';
+import PriceAlertButton from '../../components/PriceAlertButton';
 import ReviewForm from '../../components/ReviewForm';
 import OperatorRating from '../../components/OperatorRating';
 import TourShareButtons from '../../components/TourShareButtons';
@@ -148,8 +149,9 @@ export default function TourDetail() {
         </div>
 
         <div style={{ marginBottom: '2rem' }}>
-          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary-emerald)', marginBottom: '1rem' }}>
+          <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--primary-emerald)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             {formatPrice(tour.price, tour.currency)}
+            <PriceAlertButton tourId={tour._id} size={22} />
           </div>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <span className="badge badge-primary">{tour.duration}</span>
@@ -281,7 +283,7 @@ export default function TourDetail() {
           <h3 style={{ marginBottom: '1rem', color: 'var(--primary-teal)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Phone size={20} /> Firma ile İletişime Geç</h3>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <a
-              href={`https://wa.me/905551234567?text=Merhaba, ${encodeURIComponent(tour.title)} hakkında bilgi almak istiyorum.`}
+              href={`https://wa.me/${tour.operator_phone ? tour.operator_phone.replace(/\D/g, '') : '905551234567'}?text=Merhaba, ${encodeURIComponent(tour.title)} hakkında bilgi almak istiyorum.`}
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-reservation"

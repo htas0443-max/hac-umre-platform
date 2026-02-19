@@ -1,8 +1,9 @@
 import { memo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Home } from 'lucide-react';
 
 interface BreadcrumbItem {
-    label: string;
+    label: string | React.ReactNode;
     path?: string;
 }
 
@@ -18,6 +19,14 @@ const routeLabels: Record<string, string> = {
     'operator': 'Operatör',
     'create': 'Yeni Tur',
     'edit': 'Düzenle',
+    'support': 'Destek',
+    'tickets': 'Taleplerim',
+    'favorites': 'Favoriler',
+    'profile': 'Profilim',
+    'terms': 'Kullanım Şartları',
+    'privacy': 'Gizlilik Politikası',
+    'trust-faq': 'Güven SSS',
+    'verification': 'Doğrulama',
 };
 
 const Breadcrumb = memo(function Breadcrumb() {
@@ -30,7 +39,7 @@ const Breadcrumb = memo(function Breadcrumb() {
     }
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { label: '🏠', path: '/' }
+        { label: <Home size={14} />, path: '/' }
     ];
 
     pathnames.forEach((segment, index) => {

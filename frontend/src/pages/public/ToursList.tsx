@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, Search, Building, Building2, Plane, User, Package, Star, FileText, MessageCircle, Bell, Sparkles, Bot } from 'lucide-react';
+import { Globe, Search, Building, Building2, Plane, User, Package, Star, FileText, MessageCircle, Bell, Sparkles, Bot, RefreshCw } from 'lucide-react';
 import { toursApi } from '../../api';
 import { useSEO } from '../../hooks/useSEO';
 import FavoriteButton from '../../components/FavoriteButton';
@@ -28,6 +28,37 @@ export default function ToursList() {
   const [sortBy, setSortBy] = useState('created_at');
   const [sortOrder, setSortOrder] = useState('desc');
   const [showAlertForm, setShowAlertForm] = useState(false);
+
+  // Pull-to-Refresh
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const touchStartY = useRef(0);
+  const listRef = useRef<HTMLDivElement>(null);
+  const PULL_THRESHOLD = 80;
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    if (listRef.current && listRef.current.scrollTop === 0) {
+      touchStartY.current = e.touches[0].clientY;
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (touchStartY.current === 0) return;
+    const diff = e.touches[0].clientY - touchStartY.current;
+    if (diff > 0 && listRef.current && listRef.current.scrollTop === 0) {
+      setPullDistance(Math.min(diff * 0.5, 120));
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(async () => {
+    if (pullDistance >= PULL_THRESHOLD && !isRefreshing) {
+      setIsRefreshing(true);
+      await loadTours();
+      setIsRefreshing(false);
+    }
+    setPullDistance(0);
+    touchStartY.current = 0;
+  }, [pullDistance, isRefreshing]);
 
   // Debounced filter values
   const [debouncedMinPrice, setDebouncedMinPrice] = useState('');
@@ -127,7 +158,29 @@ export default function ToursList() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
+      ref={listRef}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
+      {/* Pull-to-Refresh Indicator */}
+      {(pullDistance > 0 || isRefreshing) && (
+        <div
+          className={`pull-refresh-indicator ${isRefreshing ? 'refreshing' : ''}`}
+          style={{
+            height: isRefreshing ? '40px' : `${pullDistance * 0.5}px`,
+            opacity: isRefreshing ? 1 : Math.min(pullDistance / PULL_THRESHOLD, 1),
+          }}
+        >
+          <RefreshCw
+            size={18}
+            style={{
+              transform: `rotate(${pullDistance * 3}deg)`,
+            }}
+          />
+          {isRefreshing ? 'Yenileniyor...' : pullDistance >= PULL_THRESHOLD ? 'Bırakın' : 'Çekin'}
+        </div>
+      )}
       <motion.div
         style={{ marginBottom: '2rem' }}
         initial={{ opacity: 0, y: -20 }}
